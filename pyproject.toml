@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools", "setuptools-scm"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "lymia"
+description = "Easy to use curses wrapper"
+authors = [
+    {name = "Rimu Eirnarn", email = "rimuru720@proton.me"}
+]
+keywords = ["curses"]
+readme = "README.md"
+requires-python = ">=3.13"
+license = "BSD-3-Clause"
+classifiers = [
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: Implementation :: CPython"
+]
+dynamic = ["version"]
+
+[project.urls]
+Homepage = "https://github.com/RimuEirnarn/lymia"
+Repository = "https://github.com/RimuEirnarn/lymia"
+
+[tool.setuptools]
+zip-safe = true
+packages = ["lymia"]
+
+[project.optional-dependencies]
+dev = ["pytest", "pylint", "black"]
+docs = ['sphinx', 'myst_parser']
