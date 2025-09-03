@@ -5,11 +5,6 @@ from typing import NamedTuple, Generic, TypeVar
 
 T = TypeVar("T")
 
-COMMON_TEXT = (
-    "Please install which version you wish to install"
-    "(↑↓ to navigate, Enter to select, Left/Right to undo/select)"
-)
-
 class ReturnType(IntEnum):
     """Return type"""
 

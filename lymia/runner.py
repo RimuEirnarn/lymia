@@ -45,10 +45,10 @@ def runner(stdscr: curses.window, root: Component):
         if isinstance(result, Component):
             stack.append(result)
 
-def run(fn: Callable[Ps, Component]):
+def bootstrap(fn: Callable[Ps, Component]):
     """Run the app, must be used as decorator like:
 
-    @run
+    @bootstrap
     def init():
         ...
     """
@@ -56,3 +56,7 @@ def run(fn: Callable[Ps, Component]):
     def inner(*args, **kwargs):
         return curses.wrapper(runner, fn(*args, **kwargs))
     return inner
+
+def run(_fn: Callable[Ps, Component], *args, **kwargs):
+    """Run main function, the structure must be similiar of `@bootstrap` target function."""
+    return curses.wrapper(runner, _fn(*args, **kwargs))
