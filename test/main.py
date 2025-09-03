@@ -2,7 +2,6 @@
 from os.path import realpath
 from sys import path
 
-import curses
 from curses import window
 
 from lymia.forms import FormFields
@@ -11,9 +10,15 @@ p = realpath("../")
 print(p)
 path.insert(0,p)
 
-from lymia import run, Component, on_key
+from lymia import const, run, Component, on_key
 from lymia.data import ReturnType
 from lymia.menu import Menu
+from lymia.colors import Coloring, ColorPair, color
+from lymia.environment import Theme
+
+class Basic(Coloring):
+    """Basic color pair"""
+    SELECTED = ColorPair(color.BLACK, color.YELLOW)
 
 class Settings(Component):
     """Settings component"""
@@ -42,10 +47,8 @@ class Root(Component):
 def init():
     """main function"""
     root = Root()
-    curses.curs_set(0)
-    curses.start_color()
-    curses.init_pair(2, curses.COLOR_BLACK, curses.COLOR_YELLOW)
-    return root
+    env = Theme(const.CURSOR_HIDDEN, Basic())
+    return root, env
 
 if __name__ == '__main__':
     run(init)

@@ -113,6 +113,10 @@ class Component(metaclass=ComponentMeta):
         """Initialize this component"""
         return None
 
+    def on_unmount(self, stdscr: curses.window):
+        """On unmount"""
+        return None
+
     @property
     def term_size(self):
         """Return terminal size"""

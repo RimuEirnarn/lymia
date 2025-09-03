@@ -2,7 +2,7 @@
 
 from . import _color_const as color
 
-class Color:
+class ColorPair:
     """Define colors with fg and bg"""
     def __init__(self, fg: int, bg: int) -> None:
         self._fg = fg
@@ -14,6 +14,21 @@ class Color:
         """Id"""
         return self._id
 
+    @property
+    def fg(self):
+        """Foreground"""
+        return self._fg
+
+    @property
+    def bg(self):
+        """background"""
+        return self._bg
+
+    def __int__(self):
+        if self._id == -1:
+            raise ValueError("This color must be initialized")
+        return self._id
+
     def set_id(self, cid: int):
         """Set this color id"""
         self._id = cid
@@ -21,11 +36,17 @@ class Color:
 class Coloring:
     """Coloring"""
     def __init__(self) -> None:
-        self._fields = {}
+        self._fields: dict[str, ColorPair] = {}
         for index, (key, value) in enumerate(type(self).__dict__.items()):
-            if not isinstance(value, Color):
+            if not isinstance(value, ColorPair):
                 continue
             value.set_id(index)
             self._fields[key] = value
 
-__all__ = ['Color', 'color', "Coloring"]
+    def __iter__(self):
+        return (field for field in self._fields.values())
+
+    def __bool__(self):
+        return bool(self._fields)
+
+__all__ = ['ColorPair', 'color', "Coloring"]
