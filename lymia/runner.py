@@ -5,12 +5,12 @@ import curses
 from functools import wraps
 from typing import Callable, ParamSpec
 
-from lymia.environment import Theme
-
+from .environment import Theme
 from .data import ReturnType
 from .component import Component
 
 Ps = ParamSpec("Ps")
+DEBUG = True
 
 def runner(stdscr: curses.window, root: Component, env: Theme | None = None):
     """Run the whole scheme"""
@@ -36,6 +36,10 @@ def runner(stdscr: curses.window, root: Component, env: Theme | None = None):
         key = stdscr.getch()
         result = comp.handle_key(key, stdscr)
 
+        # if DEBUG:
+            # status.set(f"{comp!r}: {result!r}")
+            # comp.show_status(stdscr)
+
         if result == ReturnType.RETURN_TO_MAIN:
             while len(stack) != 1:
                 stack.pop()
@@ -43,7 +47,7 @@ def runner(stdscr: curses.window, root: Component, env: Theme | None = None):
         if result == ReturnType.EXIT:
             break
 
-        if ret in (ReturnType.BACK, ReturnType.ERR_BACK):
+        if result in (ReturnType.BACK, ReturnType.ERR_BACK):
             stack.pop()
             comp.on_unmount(stdscr)
             continue
@@ -62,6 +66,12 @@ def bootstrap(fn: Callable[Ps, tuple[Component, Theme | None]]):
     def inner(*args, **kwargs):
         return curses.wrapper(runner, *fn(*args, **kwargs))
     return inner
+
+def debug(fn: Callable[Ps, tuple[Component, Theme | None]]):
+    """Enable debug mode"""
+    global DEBUG # pylint: disable=global-statement
+    DEBUG = True
+    return fn
 
 def run(_fn: Callable[Ps, tuple[Component, Theme | None]], *args, **kwargs):
     """Run main function, the structure must be similiar of `@bootstrap` target function."""

@@ -11,7 +11,7 @@ class FormFields:
     def __init__(self, fields: tuple[Forms, ...], margin_top: int = 0) -> None:
         self._fields = fields
         for index, field in enumerate(fields):
-            field.set_field_pos(margin_top + index + 1)
+            field.set_field_pos(margin_top + index)
 
     def to_menu_fields(self):
         """To menu fields"""

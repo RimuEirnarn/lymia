@@ -1,9 +1,12 @@
 """Lymia"""
 
 from .runner import bootstrap, run
-from .component import Component, on_key
+from .menu import Menu
+from .component import Component, MenuFormComponent, on_key
 from .data import status, ReturnInfo, ReturnType
 from .utils import hide_system, clear_line, clear_line_yield
+from .forms import Password, Text, FormFields, Forms
+
 
 __all__ = [
     'bootstrap',
@@ -16,5 +19,11 @@ __all__ = [
     "ReturnType",
     "hide_system",
     "clear_line",
-    "clear_line_yield"
+    "clear_line_yield",
+    "Menu",
+    "MenuFormComponent",
+    "Password",
+    "Text",
+    'FormFields',
+    "Forms"
 ]

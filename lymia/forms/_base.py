@@ -3,6 +3,7 @@
 # pylint: disable=no-name-in-module,no-member,unused-argument,too-many-instance-attributes
 
 import curses
+from typing import Any
 
 from ..data import ReturnType
 from .. import const
@@ -17,12 +18,13 @@ class Forms:
     def __init__(
         self,
         label: str,
+        value: Any = None,
         suffix: str = ": ",
         margin_left: int = 0,
         field_pos: int = 0,
         style: int = 0,
     ) -> None:
-        self._buffer = ""
+        self._buffer = value
         self._label = label
         self._label_suffix = suffix
         self._margin_left = margin_left
@@ -31,6 +33,7 @@ class Forms:
         self._cursor = 0
         self._editing = False
         self._escdelay = curses.get_escdelay()
+        self._prefix = ""
 
     @property
     def label(self):
@@ -54,9 +57,13 @@ class Forms:
 
     def display(self):
         """Returns pre-rendered of combination of label, suffix, and displayed value"""
-        return f"{self.label}{self._label_suffix}{self.displayed_value}"
+        if not self._editing:
+            return (
+                f"{self._prefix}{self.label}{self._label_suffix}{self.displayed_value}"
+            )
+        return ""
 
-    def __call__(self, _) -> None:
+    def __call__(self) -> None:
         self.enter_edit()
 
     def set_field_pos(self, num: int):
@@ -64,17 +71,28 @@ class Forms:
         self._field_height_pos = num
         return self
 
+    def set_prefix(self, prefix: str):
+        """Set prefix"""
+        self._prefix = prefix
+        return self
+
+    def reposition_cursor(self, stdscr: curses.window, prefix: int):
+        """Reposition cursor"""
+        stdscr.move(self._field_height_pos, prefix + self._cursor)
+
     def draw(self, stdscr: curses.window):
         """Draw this form"""
-        content = f"{self._label}{self._label_suffix}{self.displayed_value}"
-        cursor_prefix = len(self._label) + len(self._label_suffix)
-        stdscr.addstr(self._field_height_pos, 0 + self._field_height_pos, content)
+        content = (
+            f"{self._prefix}{self._label}{self._label_suffix}{self.displayed_value}"
+        )
+        cursor_prefix = len(self._prefix) + len(self._label) + len(self._label_suffix)
+        stdscr.addstr(self._field_height_pos, 0, content)
         if self._editing:
-            stdscr.move(self._field_height_pos, cursor_prefix + self._cursor)
+            self.reposition_cursor(stdscr, cursor_prefix)
 
     def enter_edit(self):
         """Enter edit mode"""
-        curses.set_escdelay(0)
+        curses.set_escdelay(1)
         curses.curs_set(2)
         self._editing = True
         self._cursor = len(self._buffer)
@@ -102,6 +120,15 @@ class Forms:
         if key in self.RIGHT_KEYS and self._cursor < len(self._buffer):
             self._cursor += 1
 
+        if key in (curses.KEY_ENTER, const.KEY_ENTER):
+            self.exit_edit()
+            return ReturnType.REVERT_OVERRIDE
+
+        if key == const.KEY_ESC:
+            self._buffer = ""
+            self.exit_edit()
+            return ReturnType.REVERT_OVERRIDE
+
         if key in const.SPECIAL_KEYS:
             return ReturnType.CONTINUE
         char = chr(key)
@@ -113,6 +140,11 @@ class Forms:
             self._buffer = (
                 self._buffer[: self._cursor] + char + self._buffer[self._cursor :]
             )
+            self._cursor += 1
+            return ReturnType.CONTINUE
         self._buffer += char
         self._cursor += 1
         return ReturnType.CONTINUE
+
+    def __repr__(self) -> str:
+        return f"<Forms/{type(self).__name__}>"

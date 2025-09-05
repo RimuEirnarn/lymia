@@ -33,6 +33,9 @@ class ColorPair:
         """Set this color id"""
         self._id = cid
 
+    def __repr__(self) -> str:
+        return f"<ColorPair[{self._id}] fg={self._fg} bg={self._bg}>"
+
 class Coloring:
     """Coloring"""
     def __init__(self) -> None:

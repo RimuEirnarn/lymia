@@ -16,6 +16,9 @@ class ReturnType(IntEnum):
     CONTINUE = 5
     EXIT = -1
 
+    OVERRIDE = 99
+    REVERT_OVERRIDE = 100
+
 class ReturnInfo(Generic[T], NamedTuple):
     """Return info"""
     type: ReturnType
