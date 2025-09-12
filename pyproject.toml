@@ -24,7 +24,7 @@ Repository = "https://github.com/RimuEirnarn/lymia"
 
 [tool.setuptools]
 zip-safe = true
-packages = ["lymia"]
+packages = ["lymia", "lymia.forms"]
 
 [project.optional-dependencies]
 dev = ["pytest", "pylint", "black"]
