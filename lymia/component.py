@@ -3,7 +3,7 @@
 # pylint: disable=no-member,unused-import,unused-argument
 from inspect import signature
 import curses
-from os import get_terminal_size
+from os import get_terminal_size, terminal_size
 from typing import Callable, Self, TypeAlias, TypeGuard, TypeVar
 
 from .utils import clear_line
@@ -66,6 +66,7 @@ class Component(metaclass=ComponentMeta):
     generic_height: int = 3
     reserved_lines: int = 5
     should_clear: bool = True
+    auto_resize: bool = True
 
     _keymap: dict[int, str] = {}
     _actions: "dict[str, DefaultCallback | WinCallback]" = {}
@@ -146,9 +147,12 @@ class Component(metaclass=ComponentMeta):
         self._actions['move_down'] = call_down
 
     @property
-    def term_size(self):
+    def term_size(self): # type: ignore
         """Return terminal size"""
-        return get_terminal_size()
+        if self.auto_resize:
+            return get_terminal_size()
+        y, x = self.screen.getmaxyx()
+        return terminal_size((x, y))
 
     @property
     def height(self):

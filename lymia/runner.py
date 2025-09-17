@@ -16,6 +16,7 @@ def runner(stdscr: curses.window, root: Component, env: Theme | None = None):
     """Run the whole scheme"""
     stack: list[Component] = [root]
     render = stdscr
+    root.init(render)
 
     if env:
         env.apply()
@@ -23,7 +24,6 @@ def runner(stdscr: curses.window, root: Component, env: Theme | None = None):
     while stack:
         comp = stack[-1]
 
-        comp.init(render)
 
         if comp.should_clear:
             stdscr.erase()
@@ -59,6 +59,7 @@ def runner(stdscr: curses.window, root: Component, env: Theme | None = None):
             component = result.component
             render = result.target or stdscr
             stack.append(component)
+            comp.init(render)
 
 def bootstrap(fn: Callable[Ps, tuple[Component, Theme | None]]):
     """Run the app, must be used as decorator like:
