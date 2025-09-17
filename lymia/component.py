@@ -13,9 +13,9 @@ from .forms import Forms
 
 Tcomp = TypeVar("Tcomp", bound="Component")
 
-DefaultCallback: TypeAlias = "Callable[[], ReturnType | Component]"
+DefaultCallback: TypeAlias = "Callable[[], ReturnType | ComponentResult]"
 WinCallback: TypeAlias = "Callable[[curses.window], ReturnType]"
-DefaultMethod: TypeAlias = "Callable[[Tcomp], ReturnType | Component]"
+DefaultMethod: TypeAlias = "Callable[[Tcomp], ReturnType | ComponentResult]"
 WinMethod: TypeAlias = "Callable[[Tcomp, curses.window], ReturnType]"
 
 GenericFunction: TypeAlias = "DefaultCallback | WinCallback"

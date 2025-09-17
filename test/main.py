@@ -11,7 +11,7 @@ print(p)
 path.insert(0, p)
 
 from lymia import const, run, Component, on_key, Menu, MenuFormComponent, Forms
-from lymia.data import ReturnType, status
+from lymia.data import ComponentResult, ReturnType, status
 from lymia.colors import Coloring, ColorPair, color
 from lymia.environment import Theme
 from lymia.forms import FormFields, Text, Password
@@ -64,7 +64,7 @@ class MinuteClock(Component):
         """Pops menu and returns component"""
         comp: Callable[[], Component] = self._menu.fetch()[1]  # type: ignore
         if not isinstance(comp, Forms):
-            return comp()
+            return ComponentResult(comp())
         return ReturnType.CONTINUE
 
     @on_key("q")
@@ -110,7 +110,7 @@ class Clock(Component):
         """Pops menu and returns component"""
         comp: Callable[[], Component] = self._menu.fetch()[1]  # type: ignore
         if not isinstance(comp, Forms):
-            return comp()
+            return ComponentResult(comp())
         return ReturnType.CONTINUE
 
     @on_key("q")
@@ -178,7 +178,7 @@ class Root(Component):
         """Pops menu and returns component"""
         comp: Callable[[], Component] = self._menu.fetch()[1]  # type: ignore
         if not isinstance(comp, Forms):
-            return comp()
+            return ComponentResult(comp())
         return ReturnType.CONTINUE
 
     @on_key("q")
