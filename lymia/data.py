@@ -1,7 +1,12 @@
 """Data-related information"""
+# pylint: disable=no-member,no-name-in-module
 
+import curses
 from enum import IntEnum
-from typing import NamedTuple, Generic, TypeVar
+from typing import NamedTuple, Generic, TypeVar, TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .component import Component
 
 T = TypeVar("T")
 
@@ -41,5 +46,10 @@ class _StatusInfo:
     def reset(self):
         """Reset status info"""
         self._data = " "
+
+class ComponentResult(NamedTuple):
+    """Component result, usable when returning Component"""
+    component: "Component"
+    target: curses.window | None = None
 
 status = _StatusInfo()

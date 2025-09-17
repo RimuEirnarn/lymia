@@ -6,7 +6,7 @@ from functools import wraps
 from typing import Callable, ParamSpec
 
 from .environment import Theme
-from .data import ReturnType
+from .data import ComponentResult, ReturnType
 from .component import Component
 
 Ps = ParamSpec("Ps")
@@ -15,6 +15,7 @@ DEBUG = True
 def runner(stdscr: curses.window, root: Component, env: Theme | None = None):
     """Run the whole scheme"""
     stack: list[Component] = [root]
+    render = stdscr
 
     if env:
         env.apply()
@@ -22,25 +23,26 @@ def runner(stdscr: curses.window, root: Component, env: Theme | None = None):
     while stack:
         comp = stack[-1]
 
-        if comp.should_init:
-            comp.init(stdscr)
+        comp.init(render)
 
         if comp.should_clear:
             stdscr.erase()
 
-        ret = comp.draw(stdscr)
+        ret = comp.draw()
         if ret in (ReturnType.BACK, ReturnType.ERR_BACK):
             stack.pop()
+            render = stdscr
             continue
 
         key = stdscr.getch()
-        result = comp.handle_key(key, stdscr)
+        result = comp.handle_key(key)
 
         # if DEBUG:
             # status.set(f"{comp!r}: {result!r}")
             # comp.show_status(stdscr)
 
         if result == ReturnType.RETURN_TO_MAIN:
+            render = stdscr
             while len(stack) != 1:
                 stack.pop()
 
@@ -49,11 +51,14 @@ def runner(stdscr: curses.window, root: Component, env: Theme | None = None):
 
         if result in (ReturnType.BACK, ReturnType.ERR_BACK):
             stack.pop()
-            comp.on_unmount(stdscr)
+            comp.on_unmount()
+            render = stdscr
             continue
 
-        if isinstance(result, Component):
-            stack.append(result)
+        if isinstance(result, ComponentResult):
+            component = result.component
+            render = result.target or stdscr
+            stack.append(component)
 
 def bootstrap(fn: Callable[Ps, tuple[Component, Theme | None]]):
     """Run the app, must be used as decorator like:

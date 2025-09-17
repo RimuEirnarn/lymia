@@ -7,7 +7,7 @@ from os import get_terminal_size
 from typing import Callable, Self, TypeAlias, TypeGuard, TypeVar
 
 from .utils import clear_line
-from .data import ReturnType, status
+from .data import ReturnType, status, ComponentResult
 from .menu import Menu
 from .forms import Forms
 
@@ -66,7 +66,6 @@ class Component(metaclass=ComponentMeta):
     generic_height: int = 3
     reserved_lines: int = 5
     should_clear: bool = True
-    should_init: bool = False
 
     _keymap: dict[int, str] = {}
     _actions: "dict[str, DefaultCallback | WinCallback]" = {}
@@ -76,8 +75,9 @@ class Component(metaclass=ComponentMeta):
     def __init__(self) -> None:
         self._init = False
         self._override = False
+        self._screen: curses.window = None # type: ignore
 
-    def draw(self, stdscr: curses.window) -> None | ReturnType:
+    def draw(self) -> None | ReturnType:
         """Draw this component"""
         raise NotImplementedError
 
@@ -85,7 +85,7 @@ class Component(metaclass=ComponentMeta):
         """Override key component"""
         return ReturnType.REVERT_OVERRIDE
 
-    def handle_key(self, key: int, stdscr: curses.window) -> "ReturnType | Component":
+    def handle_key(self, key: int) -> "ReturnType | ComponentResult":
         """Handle key component"""
         if self._override:
             ret = self.keymap_override(key)
@@ -102,19 +102,20 @@ class Component(metaclass=ComponentMeta):
             return ReturnType.CONTINUE
         if is_method(action):
             if is_method_and_uses_window(action):
-                return action(self, stdscr)
+                return action(self, self._screen)
             return action(self) # type: ignore
         if uses_window(action):
-            return action(stdscr) # type: ignore
+            return action(self._screen) # type: ignore
         return action()  # type: ignore
 
-    def show_status(self, stdscr: curses.window):
+    def show_status(self):
         """Show statuses"""
         height = self.height
+        stdscr = self._screen
         clear_line(stdscr, height - 1)
         stdscr.addstr(height - 1, 0, status.get())
 
-    def syscall(self, stdscr: curses.window) -> ReturnType:
+    def syscall(self) -> ReturnType:
         """Do whatever you want."""
         return ReturnType.OK
 
@@ -124,9 +125,12 @@ class Component(metaclass=ComponentMeta):
 
     def init(self, stdscr: curses.window):
         """Initialize this component"""
-        return None
+        if self._init is True:
+            return
+        self._screen = stdscr
+        self._init = True
 
-    def on_unmount(self, stdscr: curses.window):
+    def on_unmount(self):
         """On unmount"""
         return None
 
@@ -161,6 +165,13 @@ class Component(metaclass=ComponentMeta):
         """Return unreserved lines"""
         return self.height - self.reserved_lines
 
+    @property
+    def screen(self):
+        """This compoenent's painter"""
+        if self._screen is None:
+            raise RuntimeError("This component has not initialized yet")
+        return self._screen
+
     def __repr__(self) -> str:
         return f"<Component/{type(self).__name__}>"
 
@@ -173,10 +184,10 @@ class MenuFormComponent(Component):
         self._active_form: Forms | None = None
         self.register_keymap(menu)
 
-    def draw(self, stdscr: curses.window):
-        self._menu.draw(stdscr)
+    def draw(self):
+        self._menu.draw(self._screen)
         if self._active_form:
-            self._active_form.draw(stdscr)
+            self._active_form.draw(self._screen)
 
     def keymap_override(self, key: int) -> ReturnType:
         if self._active_form:

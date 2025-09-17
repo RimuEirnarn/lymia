@@ -3,7 +3,6 @@ import curses
 from os.path import realpath
 from sys import path
 
-from curses import window
 from typing import Callable
 
 
@@ -50,10 +49,10 @@ class MinuteClock(Component):
         )
         self.register_keymap(self._menu)
 
-    def draw(self, stdscr: window):
-        stdscr.addstr(0, 0, f"Minutes (Hour selected: {self._time})")
-        self._menu.draw(stdscr)
-        self.show_status(stdscr)
+    def draw(self):
+        self.screen.addstr(0, 0, f"Minutes (Hour selected: {self._time})")
+        self._menu.draw(self.screen)
+        self.show_status()
 
     @on_key(curses.KEY_LEFT)
     def back(self):
@@ -96,10 +95,10 @@ class Clock(Component):
         )
         self.register_keymap(self._menu)
 
-    def draw(self, stdscr: window):
-        stdscr.addstr(0, 0, "Hours")
-        self._menu.draw(stdscr)
-        self.show_status(stdscr)
+    def draw(self):
+        self.screen.addstr(0, 0, "Hours")
+        self._menu.draw(self.screen)
+        self.show_status()
 
     @on_key(curses.KEY_LEFT)
     def back(self):
@@ -138,10 +137,10 @@ class Settings(MenuFormComponent):
         )
         super().__init__(menu)
 
-    def draw(self, stdscr: window):
-        stdscr.addstr(0, 0, "App settings")
-        super().draw(stdscr)
-        self.show_status(stdscr)
+    def draw(self):
+        self.screen.addstr(0, 0, "App settings")
+        super().draw()
+        self.show_status()
 
     @on_key(curses.KEY_LEFT)
     def back(self):
@@ -169,10 +168,10 @@ class Root(Component):
         )
         self.register_keymap(self._menu)
 
-    def draw(self, stdscr: window) -> None | ReturnType:
-        stdscr.addstr(0, 0, "Hello, World!")
-        self.show_status(stdscr)
-        self._menu.draw(stdscr)
+    def draw(self) -> None | ReturnType:
+        self.screen.addstr(0, 0, "Hello, World!")
+        self.show_status()
+        self._menu.draw(self.screen)
 
     @on_key(curses.KEY_RIGHT)
     def exec_menu(self):
