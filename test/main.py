@@ -10,8 +10,8 @@ p = realpath("../")
 print(p)
 path.insert(0, p)
 
-from lymia import const, run, Component, on_key, Menu, MenuFormComponent, Forms
-from lymia.data import ComponentResult, ReturnType, status
+from lymia import const, run, Scene, on_key, Menu, MenuFormScene, Forms
+from lymia.data import SceneResult, ReturnType, status
 from lymia.colors import Coloring, ColorPair, color
 from lymia.environment import Theme
 from lymia.forms import FormFields, Text, Password
@@ -24,7 +24,7 @@ class Basic(Coloring):
     SELECTED = ColorPair(color.BLACK, color.YELLOW)
 
 
-class MinuteClock(Component):
+class MinuteClock(Scene):
     """Set an alarm (minute)"""
 
     def generate_time_minute(self, index: int):
@@ -62,9 +62,9 @@ class MinuteClock(Component):
     @on_key(curses.KEY_RIGHT)
     def exec_menu(self):
         """Pops menu and returns component"""
-        comp: Callable[[], Component] = self._menu.fetch()[1]  # type: ignore
+        comp: Callable[[], Scene] = self._menu.fetch()[1]  # type: ignore
         if not isinstance(comp, Forms):
-            return ComponentResult(comp())
+            return SceneResult(comp())
         return ReturnType.CONTINUE
 
     @on_key("q")
@@ -73,7 +73,7 @@ class MinuteClock(Component):
         return ReturnType.EXIT
 
 
-class Clock(Component):
+class Clock(Scene):
     """Set an alarm"""
 
     def generate_time_hour(self, index: int):
@@ -108,9 +108,9 @@ class Clock(Component):
     @on_key(curses.KEY_RIGHT)
     def exec_menu(self):
         """Pops menu and returns component"""
-        comp: Callable[[], Component] = self._menu.fetch()[1]  # type: ignore
+        comp: Callable[[], Scene] = self._menu.fetch()[1]  # type: ignore
         if not isinstance(comp, Forms):
-            return ComponentResult(comp())
+            return SceneResult(comp())
         return ReturnType.CONTINUE
 
     @on_key("q")
@@ -119,7 +119,7 @@ class Clock(Component):
         return ReturnType.EXIT
 
 
-class Settings(MenuFormComponent):
+class Settings(MenuFormScene):
     """Settings component"""
 
     def __init__(self) -> None:
@@ -153,12 +153,12 @@ class Settings(MenuFormComponent):
         return self.select_menu_item()
 
 
-class Root(Component):
+class Root(Scene):
     """Root component"""
 
     def __init__(self) -> None:
         super().__init__()
-        self._menu: Menu[ReturnType | Component] = Menu(
+        self._menu: Menu[ReturnType | Scene] = Menu(
             (
                 ("Settings", lambda: Settings()),  # pylint: disable=unnecessary-lambda
                 ("Clock", lambda: Clock()),  # pylint: disable=unnecessary-lambda
@@ -176,9 +176,9 @@ class Root(Component):
     @on_key(curses.KEY_RIGHT)
     def exec_menu(self):
         """Pops menu and returns component"""
-        comp: Callable[[], Component] = self._menu.fetch()[1]  # type: ignore
+        comp: Callable[[], Scene] = self._menu.fetch()[1]  # type: ignore
         if not isinstance(comp, Forms):
-            return ComponentResult(comp())
+            return SceneResult(comp())
         return ReturnType.CONTINUE
 
     @on_key("q")

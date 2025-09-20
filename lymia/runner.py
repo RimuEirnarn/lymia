@@ -2,21 +2,24 @@
 # pylint: disable=no-member,no-name-in-module
 
 import curses
+import curses.panel
 from functools import wraps
+from time import sleep
 from typing import Callable, ParamSpec
 
 from .environment import Theme
-from .data import ComponentResult, ReturnType
-from .component import Component
+from .data import SceneResult, ReturnType
+from .scene import Scene
 
 Ps = ParamSpec("Ps")
 DEBUG = True
 
-def runner(stdscr: curses.window, root: Component, env: Theme | None = None):
+def runner(stdscr: curses.window, root: Scene, env: Theme | None = None):
     """Run the whole scheme"""
-    stack: list[Component] = [root]
+    stack: list[Scene] = [root]
     render = stdscr
     root.init(render)
+    sizes = render.getmaxyx()
 
     if env:
         env.apply()
@@ -24,18 +27,31 @@ def runner(stdscr: curses.window, root: Component, env: Theme | None = None):
     while stack:
         comp = stack[-1]
 
-
         if comp.should_clear:
-            stdscr.erase()
+            render.erase()
+
+        new_size = render.getmaxyx()
+        if sizes != new_size and comp.auto_resize:
+            comp.init(render)
+            sizes = new_size
 
         ret = comp.draw()
+        curses.panel.update_panels()
+        curses.doupdate()
+        if comp.render_fps > 1: # why do we add this anyway?
+            sleep(1 / comp.render_fps)
+
+        # curses.panel.update_panels()
         if ret in (ReturnType.BACK, ReturnType.ERR_BACK):
             stack.pop()
+            comp.on_unmount()
             render = stdscr
             continue
 
-        key = stdscr.getch()
+        key = render.getch()
         result = comp.handle_key(key)
+        curses.panel.update_panels()
+        curses.doupdate()
 
         # if DEBUG:
             # status.set(f"{comp!r}: {result!r}")
@@ -44,9 +60,13 @@ def runner(stdscr: curses.window, root: Component, env: Theme | None = None):
         if result == ReturnType.RETURN_TO_MAIN:
             render = stdscr
             while len(stack) != 1:
-                stack.pop()
+                scene = stack.pop()
+                scene.on_unmount()
 
         if result == ReturnType.EXIT:
+            for scene in stack:
+                scene.on_unmount()
+            stack.clear()
             break
 
         if result in (ReturnType.BACK, ReturnType.ERR_BACK):
@@ -55,13 +75,13 @@ def runner(stdscr: curses.window, root: Component, env: Theme | None = None):
             render = stdscr
             continue
 
-        if isinstance(result, ComponentResult):
-            component = result.component
+        if isinstance(result, SceneResult):
+            scene = result.scene
             render = result.target or stdscr
-            stack.append(component)
+            stack.append(scene)
             comp.init(render)
 
-def bootstrap(fn: Callable[Ps, tuple[Component, Theme | None]]):
+def bootstrap(fn: Callable[Ps, tuple[Scene, Theme | None]]):
     """Run the app, must be used as decorator like:
 
     @bootstrap
@@ -73,12 +93,12 @@ def bootstrap(fn: Callable[Ps, tuple[Component, Theme | None]]):
         return curses.wrapper(runner, *fn(*args, **kwargs))
     return inner
 
-def debug(fn: Callable[Ps, tuple[Component, Theme | None]]):
+def debug(fn: Callable[Ps, tuple[Scene, Theme | None]]):
     """Enable debug mode"""
     global DEBUG # pylint: disable=global-statement
     DEBUG = True
     return fn
 
-def run(_fn: Callable[Ps, tuple[Component, Theme | None]], *args, **kwargs):
+def run(_fn: Callable[Ps, tuple[Scene, Theme | None]], *args, **kwargs):
     """Run main function, the structure must be similiar of `@bootstrap` target function."""
     return curses.wrapper(runner, *_fn(*args, **kwargs))

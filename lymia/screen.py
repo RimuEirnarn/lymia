@@ -10,7 +10,6 @@ from lymia.errors import RenderError
 Fucking abomination, don't bother code this hell
 """
 
-# TODO: Don't bother implement this ass
 
 ChType: TypeAlias = str | bytes | int
 

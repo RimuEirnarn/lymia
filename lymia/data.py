@@ -6,7 +6,7 @@ from enum import IntEnum
 from typing import NamedTuple, Generic, TypeVar, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from .component import Component
+    from .scene import Scene
 
 T = TypeVar("T")
 
@@ -47,9 +47,9 @@ class _StatusInfo:
         """Reset status info"""
         self._data = " "
 
-class ComponentResult(NamedTuple):
-    """Component result, usable when returning Component"""
-    component: "Component"
+class SceneResult(NamedTuple):
+    """Scene result, usable when returning Scene"""
+    scene: "Scene"
     target: curses.window | None = None
 
 status = _StatusInfo()

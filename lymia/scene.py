@@ -7,15 +7,15 @@ from os import get_terminal_size, terminal_size
 from typing import Callable, Self, TypeAlias, TypeGuard, TypeVar
 
 from .utils import clear_line
-from .data import ReturnType, status, ComponentResult
+from .data import ReturnType, status, SceneResult
 from .menu import Menu
 from .forms import Forms
 
-Tcomp = TypeVar("Tcomp", bound="Component")
+Tcomp = TypeVar("Tcomp", bound="Scene")
 
-DefaultCallback: TypeAlias = "Callable[[], ReturnType | ComponentResult]"
+DefaultCallback: TypeAlias = "Callable[[], ReturnType | SceneResult]"
 WinCallback: TypeAlias = "Callable[[curses.window], ReturnType]"
-DefaultMethod: TypeAlias = "Callable[[Tcomp], ReturnType | ComponentResult]"
+DefaultMethod: TypeAlias = "Callable[[Tcomp], ReturnType | SceneResult]"
 WinMethod: TypeAlias = "Callable[[Tcomp, curses.window], ReturnType]"
 
 GenericFunction: TypeAlias = "DefaultCallback | WinCallback"
@@ -43,8 +43,8 @@ def no_op():
     return ReturnType.CONTINUE
 
 
-class ComponentMeta(type):
-    """Component metaclass"""
+class SceneMeta(type):
+    """Scene metaclass"""
 
     def __new__(mcs, name, bases, dct: dict):
         keymap = {}
@@ -60,18 +60,18 @@ class ComponentMeta(type):
         return super().__new__(mcs, name, bases, dct)
 
 
-class Component(metaclass=ComponentMeta):
-    """Base class for all sorts of components"""
+class Scene(metaclass=SceneMeta):
+    """Base class for all sorts of scenes"""
 
     generic_height: int = 3
     reserved_lines: int = 5
     should_clear: bool = True
     auto_resize: bool = True
+    render_fps = -1
 
     _keymap: dict[int, str] = {}
     _actions: "dict[str, DefaultCallback | WinCallback]" = {}
 
-    """Your main component"""
 
     def __init__(self) -> None:
         self._init = False
@@ -86,7 +86,7 @@ class Component(metaclass=ComponentMeta):
         """Override key component"""
         return ReturnType.REVERT_OVERRIDE
 
-    def handle_key(self, key: int) -> "ReturnType | ComponentResult":
+    def handle_key(self, key: int) -> "ReturnType | SceneResult":
         """Handle key component"""
         if self._override:
             ret = self.keymap_override(key)
@@ -113,8 +113,11 @@ class Component(metaclass=ComponentMeta):
         """Show statuses"""
         height = self.height
         stdscr = self._screen
-        clear_line(stdscr, height - 1)
-        stdscr.addstr(height - 1, 0, status.get())
+        try:
+            clear_line(stdscr, height - 1)
+            stdscr.addstr(height - 1, 0, status.get())
+        except curses.error: # occurs during resize
+            pass
 
     def syscall(self) -> ReturnType:
         """Do whatever you want."""
@@ -179,7 +182,7 @@ class Component(metaclass=ComponentMeta):
     def __repr__(self) -> str:
         return f"<Component/{type(self).__name__}>"
 
-class MenuFormComponent(Component):
+class MenuFormScene(Scene):
     """Base for components with menu and forms"""
 
     def __init__(self, menu: Menu):

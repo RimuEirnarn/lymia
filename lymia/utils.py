@@ -2,7 +2,7 @@
 
 # pylint: disable=no-member
 
-from os import get_terminal_size
+# from os import get_terminal_size
 import curses
 from contextlib import contextmanager
 from typing import TypeVar
@@ -21,7 +21,7 @@ def hide_system(stdscr: curses.window):
 
 def clear_line(stdscr: curses.window, line: int):
     """Clear a line"""
-    stdscr.addstr(line, 0, " " * (get_terminal_size().columns - 1))
+    stdscr.addstr(line, 0, " " * (stdscr.getmaxyx()[1] - 1))
 
 @contextmanager
 def clear_line_yield(stdscr: curses.window, line: int):
