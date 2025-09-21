@@ -15,7 +15,13 @@ Linux, Mac (???), Windows with curses
 
 ## Features
 
-TBA
+1. Stack-based Scenes
+2. Easy to use Panels
+3. Menus
+4. Forms
+5. Animations
+6. Coloring guides
+7. Several cool utility tools
 
 ### Issues & Contribution
 
