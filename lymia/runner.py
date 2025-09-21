@@ -17,6 +17,7 @@ Ps = ParamSpec("Ps")
 DEBUG = True
 
 def wait(sizes: tuple[int, int], minsize: tuple[int, int]):
+    """Check whether current sizes is enough for minsize"""
     return not (sizes[0] < minsize[0] or sizes[1] < minsize[1])
 
 def _oob_runner(render, fps: int, minsize: tuple[int, int]):
