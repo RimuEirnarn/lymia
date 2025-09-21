@@ -71,6 +71,7 @@ class Scene(metaclass=SceneMeta):
     should_clear: bool = True
     auto_resize: bool = True
     render_fps = -1
+    minimal_size: tuple[int, int] = (-1, -1)
 
     _keymap: dict[int, str] = {}
     _actions: "dict[str, DefaultCallback | WinCallback]" = {}

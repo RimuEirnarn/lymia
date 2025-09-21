@@ -61,6 +61,7 @@ class Root(Scene):
     """Root component"""
 
     render_fps = 120
+    minimal_size = (30, 120)
 
     def __init__(self) -> None:
         super().__init__()
@@ -117,7 +118,8 @@ class Root(Scene):
         self._animator: Animator = Animator(self.render_fps)
 
     def draw(self) -> None:
-        status.set(f"FPS: {self.fps} | Action: {self._keytype}")
+        size = f"{self.height}x{self.width}"
+        status.set(f"FPS: {self.fps} | Screen: {size} | Action: {self._keytype}")
         self._animator.tick()
         self.update_panels()
         self.show_status()

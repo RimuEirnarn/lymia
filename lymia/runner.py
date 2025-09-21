@@ -20,6 +20,7 @@ def runner(stdscr: curses.window, root: Scene, env: Theme | None = None):
     render = stdscr
     root.init(render)
     sizes = render.getmaxyx()
+    root_minsize = root.minimal_size
     delta: float = 0
     start = end = 0
     frame_count = 0
@@ -43,6 +44,11 @@ def runner(stdscr: curses.window, root: Scene, env: Theme | None = None):
         if sizes != new_size and comp.auto_resize:
             comp.init(render)
             sizes = new_size
+
+        if root_minsize != (-1, -1):
+            if sizes[0] < root_minsize[0] or sizes[1] < root_minsize[1]:
+                size = f"{root_minsize[0]}x{root_minsize[1]}"
+                raise RuntimeError(f"Cannot go lower below {size} ({sizes})")
 
         if comp.animator:
             comp.animator.deltatime = delta
