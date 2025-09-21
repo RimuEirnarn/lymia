@@ -10,13 +10,18 @@ class Animator:
     def __init__(self, fps: int):
         if fps <= 0:
             raise ValueError(f"Invalid FPS target: {fps}")
-        self.fps = fps
+        self._fps = fps
         self._dt = 1 / fps
-        self.animations: "list[BaseAnim]" = []
+        self._animations: "list[BaseAnim]" = []
 
     def add(self, animation: "BaseAnim"):
         """Add animations"""
-        self.animations.append(animation)
+        self._animations.append(animation)
+
+    @property
+    def is_empty(self):
+        """Is empty?"""
+        return len(self._animations) == 0
 
     @property
     def deltatime(self):
@@ -32,10 +37,10 @@ class Animator:
         """Tick"""
         dt = self.deltatime
 
-        for anim in self.animations[:]:
+        for anim in self._animations[:]:
             anim.update(dt)
             if anim.finished:
-                self.animations.remove(anim)
+                self._animations.remove(anim)
 
 
 class BaseAnim:

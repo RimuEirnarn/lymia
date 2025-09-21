@@ -163,6 +163,11 @@ class Scene(metaclass=SceneMeta):
         self._actions['move_up'] = call_up
         self._actions['move_down'] = call_down
 
+    def cleanup_menu_keymap(self):
+        """Cleanup menu's register keymap"""
+        self._actions['move_up'] = lambda: ReturnType.CONTINUE
+        self._actions['move_down'] = lambda: ReturnType.CONTINUE
+
     @property
     def term_size(self): # type: ignore
         """Return terminal size"""

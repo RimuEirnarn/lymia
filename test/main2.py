@@ -7,7 +7,6 @@ from sys import path
 
 
 p = realpath("../")
-print(p)
 path.insert(0, p)
 
 from lymia import Scene, on_key
@@ -60,8 +59,8 @@ def draw_abaction(screen: curses.window, menu: Menu):
 class Root(Scene):
     """Root component"""
 
-    render_fps = 120
-    #minimal_size = (30, 120)
+    render_fps = 60
+    # minimal_size = (30, 120)
 
     def __init__(self) -> None:
         super().__init__()
@@ -70,7 +69,7 @@ class Root(Scene):
         self._kwdargs = {
             "prefix": " ",
             "selected_style": Basic.SELECTED,
-            "margin_height": (1, 1),
+            "margin_height": (1, 2),
             "margin_left": 1,
             "max_height": 8,
         }
@@ -89,6 +88,10 @@ class Root(Scene):
                 ("Paladin's Momentum", lambda: "Skill: Paladin's Momentum"),
                 ("Reformative Catalyst", lambda: "Skill: Reformative Catalyst"),
                 ("Lantern of Radiance", lambda: "Skill: Lantern of Radiance"),
+                ("Skill 1", lambda: "Skill: 1"),
+                ("Skill 2", lambda: "Skill: 2"),
+                ("Skill 3", lambda: "Skill: 3"),
+                ("Skill 4", lambda: "Skill: 4"),
             ),
             **self._kwdargs,
         )
@@ -122,9 +125,12 @@ class Root(Scene):
     def draw(self) -> None:
         size = f"{self.height}x{self.width}"
         k = f"Key: {self._key}"
+        t = f"Menu: {self._target_menu}"
         self._animator.tick()
         self.update_panels()
-        status.set(f"FPS: {self.fps} | Screen: {size} | {k} | Action: {self._keytype}")
+        status.set(
+            f"FPS: {self.fps} | Screen: {size} | {k} | {t} | Action: {self._keytype}"
+        )
         self.show_status()
 
     def init(self, stdscr: curses.window):
@@ -132,14 +138,14 @@ class Root(Scene):
         self._panels = (
             Panel(*(8, 30, self.height - 9, 0), draw_character, self._character),
             Panel(*(8, 30, self.height - 9, 30), draw_action, state=self._menu),
-            Panel(*(8, 30, self.height - 9, 30), draw_abaction, state=self._menu),
+            Panel(*(8, 30, self.height - 9, 30), draw_abaction),
         )
         self._panels[2].hide()
         stdscr.nodelay(True)
 
     def handle_key(self, key: int):
         # if key == 410:
-            # return ReturnType.CONTINUE
+        # return ReturnType.CONTINUE
         res = super().handle_key(key)
         if key != -1:
             self._key = key
@@ -150,13 +156,49 @@ class Root(Scene):
         """quit from menu"""
         return ReturnType.EXIT
 
+    def use_panel2(self, keytype: str):
+        """Use panel 2"""
+        menu = self._abmenu.get(keytype, None)
+        if menu is None:
+            return
+        self._panels[2].set_state(menu)
+        anim = move_panel(
+            self._panels[1], 30, self.height - 9, 60, self.height - 9, 0.5
+        )
+        anim.on_complete(self.panel2_oncomplete)
+        self._animator.add(anim)
+
+    def revert(self):
+        """Revert to Panel 1"""
+        self._panels[2].hide()
+        self._panels[2].set_state(None)
+        anim = move_panel(
+            self._panels[1], 60, self.height - 9, 30, self.height - 9, 0.5
+        )
+        anim.on_complete(self.panel1_oncomplete)
+        self._animator.add(anim)
+
+    def panel1_oncomplete(self, _: Panel):
+        """Panel 1 on complete"""
+        self.register_keymap(self._menu)
+        self._target_menu = 0
+
+    def panel2_oncomplete(self, _: Panel):
+        """Panel 2 on complete"""
+        self._panels[2].show()
+        menu: Menu = self._panels[2].get_state()  # type: ignore
+        self.register_keymap(menu)
+        self._target_menu = 1
+
     @on_key(curses.KEY_RIGHT)
     def select(self):
         """Select from skill menu"""
+        if not self._animator.is_empty:
+            return ReturnType.CONTINUE
         _, ability = (
             self._menu.fetch()
             if self._target_menu == 0
-            else self._panels[2].get_state().fetch() # type: ignore
+            else self._panels[2].get_state().fetch()  # type: ignore
         )
         if not isinstance(ability, Forms) and self._panels[2].panel.hidden():
             keytype = ability()
@@ -165,28 +207,13 @@ class Root(Scene):
             if keytype in ("Flee", "Basic Attack"):
                 self._keytype = keytype
                 return ReturnType.CONTINUE
-            self.register_keymap(self._abmenu[keytype])
-            self._panels[2].set_state(self._abmenu[keytype])
-            anim = move_panel(
-                self._panels[1], 30, self.height - 9, 60, self.height - 9, 0.5
-            )
-            anim.on_complete(lambda _: self._panels[2].show())
-            self._target_menu = 1
-            self._animator.add(anim)
+            self.use_panel2(keytype)
         if not isinstance(ability, Forms) and self._panels[2].panel.hidden() is False:
             keytype = ability()
             if keytype is None:
                 return ReturnType.CONTINUE
             self._keytype = keytype
-            self.register_keymap(self._menu)
-            self._panels[2].hide()
-            self._panels[2].set_state(self._menu)
-            self._animator.add(
-                move_panel(
-                    self._panels[1], 60, self.height - 9, 30, self.height - 9, 0.5
-                )
-            )
-            self._target_menu = 0
+            self.revert()
 
         return ReturnType.CONTINUE
 
@@ -194,15 +221,7 @@ class Root(Scene):
     def unselect(self):
         """Unselect"""
         if self._panels[2].panel.hidden() is False:
-            self._panels[2].hide()
-            self.register_keymap(self._menu)
-            self._panels[2].set_state(self._menu)
-            self._animator.add(
-                move_panel(
-                    self._panels[1], 60, self.height - 9, 30, self.height - 9, 0.5
-                )
-            )
-            self._target_menu = 0
+            self.revert()
         return ReturnType.CONTINUE
 
 
