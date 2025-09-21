@@ -4,7 +4,7 @@
 
 import curses.panel
 import curses
-from typing import Callable, ParamSpec, Concatenate
+from typing import Any, Callable, ParamSpec
 
 
 def refresh():
@@ -37,11 +37,21 @@ class Panel:
         width: int,
         start_x: int = 0,
         start_y: int = 0,
-        callback: Callable[Concatenate[curses.window, Ps], None] | None = None,
+        callback: Callable[[curses.window, Any], None] | None = None,
+        state: Any = None
     ) -> None:
         self._win = curses.newwin(height, width, start_x, start_y)
         self._panel = curses.panel.new_panel(self._win)
+        self._panel.set_userptr(state)
         self._draw = callback
+
+    def set_state(self, obj: Any):
+        """Set panel's state"""
+        self._panel.set_userptr(obj)
+
+    def get_state(self):
+        """Get panel's state"""
+        return self._panel.userptr()
 
     @property
     def screen(self):
@@ -53,10 +63,10 @@ class Panel:
         """Return the panel this class references to"""
         return self._panel
 
-    def draw(self, *args, **kwargs):
+    def draw(self):
         """Draw this panel"""
         if callable(self._draw):
-            self._draw(self._win, *args, **kwargs)
+            self._draw(self._win, self.get_state())
 
     def above(self):
         """Put panel above"""
@@ -90,7 +100,11 @@ class Panel:
 
     def move(self, x: int, y: int):
         """Move current panel"""
-        self._panel.move(y, x)
+        try:
+            self._panel.move(y, x)
+        except curses.panel.error as exc:
+            exc.add_note(f"x: {x} and y: {y}")
+            raise exc
         refresh()
 
     def replace(self, win: curses.window):

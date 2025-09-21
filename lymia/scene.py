@@ -6,6 +6,7 @@ import curses
 from os import get_terminal_size, terminal_size
 from typing import Callable, Self, TypeAlias, TypeGuard, TypeVar
 
+from lymia.anim import Animator
 from lymia.panel import Panel
 
 from .utils import clear_line
@@ -80,6 +81,7 @@ class Scene(metaclass=SceneMeta):
         self._override = False
         self._screen: curses.window = None # type: ignore
         self._panels: tuple[Panel, ...] = ()
+        self._animator: Animator
 
     def draw(self) -> None | ReturnType:
         """Draw this component"""
@@ -188,6 +190,13 @@ class Scene(metaclass=SceneMeta):
         if self._screen is None:
             raise RuntimeError("This component has not initialized yet")
         return self._screen
+
+    @property
+    def animator(self):
+        """Component's animator"""
+        if not hasattr(self, '_animator'):
+            return None
+        return self._animator
 
     def __repr__(self) -> str:
         return f"<Component/{type(self).__name__}>"

@@ -12,6 +12,7 @@ print(p)
 path.insert(0, p)
 
 from lymia import Scene, on_key
+from lymia.anim import  Animator, move_panel
 from lymia.panel import Panel
 from lymia.colors import Coloring
 from lymia.data import ReturnType, status
@@ -30,6 +31,7 @@ class Basic(Coloring):
 
 def draw_character(screen: curses.window, character):
     """Draw character HUD"""
+    screen.erase()
     screen.box()
     screen.addstr(1, 2, character[0])
     hp = character[1]
@@ -42,50 +44,91 @@ def draw_character(screen: curses.window, character):
 
 def draw_action(screen: curses.window, menu: Menu):
     """Draw actions HUD"""
+    screen.erase()
     screen.box()
+    menu.draw(screen)
+
+
+def draw_abaction(screen: curses.window, menu: Menu):
+    """Draw skill/ultimate/"""
+    screen.erase()
+    screen.box()
+    if menu is None:
+        return
     menu.draw(screen)
 
 
 class Root(Scene):
     """Root component"""
 
-    render_fps = 30
+    render_fps = 120
 
     def __init__(self) -> None:
         super().__init__()
         self._panels: tuple[Panel, ...]
         self._character = ("Rimu Aerisya Lv. 100", (8300, 8300), (75, 100), (185, 200))
+        self._kwdargs = {
+            "prefix": " ",
+            "selected_style": Basic.SELECTED,
+            "margin_height": (1, 1),
+            "margin_left": 1,
+            "max_height": 8,
+        }
         self._menu = Menu(
             (
-                ("Basic Attack", lambda: status.set("Basic Attack")),
-                ("Skill", lambda: status.set("Skill")),
-                ("Ultimate", lambda: status.set("Ultimate")),
-                ("Items", lambda: status.set("Items")),
-                ("Flee", lambda: status.set("Flee")),
+                ("Basic Attack", lambda: "Basic Attack"),
+                ("Skill", lambda: "Skill"),
+                ("Ultimate", lambda: "Ultimate"),
+                ("Items", lambda: "Items"),
+                ("Flee", lambda: "Flee"),
             ),
-            prefix=" ",
-            selected_style=Basic.SELECTED,
-            margin_height=(1, 1),
-            margin_left=1,
-            max_height=8,
+            **self._kwdargs,
         )
+        self._ability_menu_skill = Menu(
+            (
+                ("Paladin's Momentum", lambda: None),
+                ("Reformative Catalyst", lambda: None),
+                ("Lantern of Radiance", lambda: None),
+            ),
+            **self._kwdargs,
+        )
+        self._ability_menu_ultimate = Menu(
+            (
+                ("Vainglory's Revolution", lambda: None),
+                ("The Radiance", lambda: None),
+            ),
+            **self._kwdargs,
+        )
+        self._ability_menu_items = Menu(
+            (
+                ("Small HP Potion", lambda: None),
+                ("Medium HP Potion", lambda: None),
+                ("Big HP Potion", lambda: None),
+            ),
+            **self._kwdargs,
+        )
+        self._abmenu = {
+            "Skill": self._ability_menu_skill,
+            "Ultimate": self._ability_menu_ultimate,
+            "Items": self._ability_menu_items,
+        }
+        self._state = {"menu": self._menu}
         self.register_keymap(self._menu)
+        self._animator: Animator = Animator(self.render_fps)
 
     def draw(self) -> None:
+        self._animator.tick()
         self.update_panels()
         self.show_status()
 
     def init(self, stdscr: curses.window):
         super().init(stdscr)
         self._panels = (
-            Panel(
-                *(8, 30, self.height - 9, 0),
-                lambda scr: draw_character(scr, self._character),
-            ),
-            Panel(
-                *(8, 30, self.height - 9, 30), lambda scr: draw_action(scr, self._menu)
-            ),
+            Panel(*(8, 30, self.height - 9, 0), draw_character, self._character),
+            Panel(*(8, 30, self.height - 9, 30), draw_action, state=self._menu),
+            Panel(*(8, 30, self.height - 9, 30), draw_abaction),
         )
+        self._panels[2].hide()
         stdscr.nodelay(True)
 
     @on_key("q")
@@ -97,9 +140,33 @@ class Root(Scene):
     def select(self):
         """Select from skill menu"""
         _, ability = self._menu.fetch()
-        if not isinstance(ability, Forms):
-            ability()
-        return ReturnType.OK
+        if not isinstance(ability, Forms) and self._panels[2].panel.hidden():
+            keytype = ability()
+            if keytype is None:
+                return ReturnType.CONTINUE
+            if keytype in ("Flee", "Basic Attack"):
+                status.set(keytype)
+                return ReturnType.CONTINUE
+            self.register_keymap(self._abmenu[keytype])
+            self._panels[2].set_state(self._abmenu[keytype])
+            anim = move_panel(self._panels[1], 30, self.height - 9, 60, self.height - 9, 0.5)
+            anim.on_complete(lambda _: self._panels[2].show())
+            self._animator.add(anim)
+
+        return ReturnType.CONTINUE
+
+    @on_key(curses.KEY_LEFT)
+    def unselect(self):
+        """Unselect"""
+        if self._panels[2].panel.hidden() is False:
+            self._panels[2].hide()
+            self.register_keymap(self._menu)
+            self._panels[2].set_state(None)
+            self._animator.add(
+                move_panel(self._panels[1], 60, self.height - 9, 30, self.height - 9, 0.5)
+            )
+        return ReturnType.CONTINUE
+
 
 @debug
 def init():
