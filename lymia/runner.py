@@ -4,15 +4,31 @@
 import curses
 import curses.panel
 from functools import wraps
+from os import get_terminal_size
 from time import sleep, perf_counter
 from typing import Callable, ParamSpec
 
 from .environment import Theme
 from .data import SceneResult, ReturnType
 from .scene import Scene
+from .utils import hide_system
 
 Ps = ParamSpec("Ps")
 DEBUG = True
+
+def wait(sizes: tuple[int, int], minsize: tuple[int, int]):
+    return not (sizes[0] < minsize[0] or sizes[1] < minsize[1])
+
+def _oob_runner(render, fps: int, minsize: tuple[int, int]):
+    sizes = f"{minsize[0]}x{minsize[1]}"
+    with hide_system(render):
+        while True:
+            size: tuple[int, int] = get_terminal_size()[::-1] # type: ignore
+            csize = f"{size[0]}x{size[1]}"
+            print(f"Cannot go below {sizes} ({csize})", end='\r')
+            if wait(size, minsize):
+                return
+            sleep(1 / fps)
 
 def runner(stdscr: curses.window, root: Scene, env: Theme | None = None):
     """Run the whole scheme"""
@@ -45,10 +61,9 @@ def runner(stdscr: curses.window, root: Scene, env: Theme | None = None):
             comp.init(render)
             sizes = new_size
 
-        if root_minsize != (-1, -1):
-            if sizes[0] < root_minsize[0] or sizes[1] < root_minsize[1]:
-                size = f"{root_minsize[0]}x{root_minsize[1]}"
-                raise RuntimeError(f"Cannot go lower below {size} ({sizes})")
+            minsize = max(comp.minimal_size, root_minsize)
+            if sizes[0] < minsize[0] or sizes[1] < minsize[1]:
+                _oob_runner(render, comp.render_fps, minsize)
 
         if comp.animator:
             comp.animator.deltatime = delta
