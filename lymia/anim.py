@@ -3,8 +3,10 @@
 from typing import Callable
 from .panel import Panel
 
+
 class Animator:
     """Animator"""
+
     def __init__(self, fps: int):
         if fps <= 0:
             raise ValueError(f"Invalid FPS target: {fps}")
@@ -35,8 +37,10 @@ class Animator:
             if anim.finished:
                 self.animations.remove(anim)
 
+
 class BaseAnim:
     """Base class for all animation"""
+
     def __init__(self) -> None:
         self._finished = False
         self._target: Panel
@@ -55,9 +59,16 @@ class BaseAnim:
         """Update"""
         raise NotImplementedError
 
+
 class Animation(BaseAnim):
     """Animation handler"""
-    def __init__(self, target: Panel, duration: int | float, update_fn: Callable[[Panel, float], None]):
+
+    def __init__(
+        self,
+        target: Panel,
+        duration: int | float,
+        update_fn: Callable[[Panel, float], None],
+    ):
         super().__init__()
         self._target = target
         self._duration = duration
@@ -78,6 +89,7 @@ class Animation(BaseAnim):
 
 class KeyframeAnimation(BaseAnim):
     """Keyframe animation"""
+
     def __init__(
         self,
         target: Panel,
@@ -118,10 +130,13 @@ class KeyframeAnimation(BaseAnim):
             self._finished = True
             self._callback(self._target)
 
+
 def move_panel(panel: Panel, x1: int, y1: int, x2: int, y2: int, duration: int | float):
     """Move panels around"""
+
     def updater(target: Panel, t: float):
         x = int(x1 + (x2 - x1) * t)
         y = int(y1 + (y2 - y1) * t)
         target.move(x, y)
+
     return Animation(panel, duration, updater)

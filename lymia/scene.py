@@ -121,7 +121,7 @@ class Scene(metaclass=SceneMeta):
         height = self.height
         stdscr = self._screen
         try:
-            clear_line(stdscr, height - 1)
+            # clear_line(stdscr, height - 1)
             stdscr.addstr(height - 1, 0, status.get())
         except curses.error: # occurs during resize
             pass

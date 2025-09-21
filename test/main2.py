@@ -119,9 +119,9 @@ class Root(Scene):
 
     def draw(self) -> None:
         size = f"{self.height}x{self.width}"
-        status.set(f"FPS: {self.fps} | Screen: {size} | Action: {self._keytype}")
         self._animator.tick()
         self.update_panels()
+        status.set(f"FPS: {self.fps} | Screen: {size} | Action: {self._keytype}")
         self.show_status()
 
     def init(self, stdscr: curses.window):
