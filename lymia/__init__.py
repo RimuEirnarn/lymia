@@ -7,7 +7,7 @@ from .data import status, ReturnInfo, ReturnType
 from .utils import hide_system, clear_line, clear_line_yield
 from .forms import Password, Text, FormFields, Forms
 
-__version__ = "0.0.1"
+__version__ = "0.0.2"
 __all__ = [
     'bootstrap',
     'run',
