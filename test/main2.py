@@ -87,7 +87,7 @@ class Root(Scene):
         self._ability_menu_skill = Menu(
             (
                 ("Paladin's Momentum", lambda: "Skill: Paladin's Momentum"),
-                ("Reformative Catalyst", lambda: "SKill: Reformative Catalyst"),
+                ("Reformative Catalyst", lambda: "Skill: Reformative Catalyst"),
                 ("Lantern of Radiance", lambda: "Skill: Lantern of Radiance"),
             ),
             **self._kwdargs,
@@ -114,7 +114,7 @@ class Root(Scene):
         }
         self._state = {"menu": self._menu}
         self._keytype = ""
-        self._t = 0
+        self._target_menu = 0
         self._key = 0
         self.register_keymap(self._menu)
         self._animator: Animator = Animator(self.render_fps)
@@ -122,10 +122,9 @@ class Root(Scene):
     def draw(self) -> None:
         size = f"{self.height}x{self.width}"
         k = f"Key: {self._key}"
-        t = f"Target: {self._t}"
         self._animator.tick()
         self.update_panels()
-        status.set(f"FPS: {self.fps} | Screen: {size} | {k} | {t} | Action: {self._keytype}")
+        status.set(f"FPS: {self.fps} | Screen: {size} | {k} | Action: {self._keytype}")
         self.show_status()
 
     def init(self, stdscr: curses.window):
@@ -139,8 +138,8 @@ class Root(Scene):
         stdscr.nodelay(True)
 
     def handle_key(self, key: int):
-        if key == 410:
-            return ReturnType.CONTINUE
+        # if key == 410:
+            # return ReturnType.CONTINUE
         res = super().handle_key(key)
         if key != -1:
             self._key = key
@@ -156,7 +155,7 @@ class Root(Scene):
         """Select from skill menu"""
         _, ability = (
             self._menu.fetch()
-            if self._t == 0
+            if self._target_menu == 0
             else self._panels[2].get_state().fetch() # type: ignore
         )
         if not isinstance(ability, Forms) and self._panels[2].panel.hidden():
@@ -172,7 +171,7 @@ class Root(Scene):
                 self._panels[1], 30, self.height - 9, 60, self.height - 9, 0.5
             )
             anim.on_complete(lambda _: self._panels[2].show())
-            self._t = 1
+            self._target_menu = 1
             self._animator.add(anim)
         if not isinstance(ability, Forms) and self._panels[2].panel.hidden() is False:
             keytype = ability()
@@ -187,7 +186,7 @@ class Root(Scene):
                     self._panels[1], 60, self.height - 9, 30, self.height - 9, 0.5
                 )
             )
-            self._t = 0
+            self._target_menu = 0
 
         return ReturnType.CONTINUE
 
@@ -203,7 +202,7 @@ class Root(Scene):
                     self._panels[1], 60, self.height - 9, 30, self.height - 9, 0.5
                 )
             )
-            self._t = 0
+            self._target_menu = 0
         return ReturnType.CONTINUE
 
 

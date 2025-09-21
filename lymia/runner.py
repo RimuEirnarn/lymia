@@ -44,7 +44,7 @@ def check_resize(
     """Check scene resize"""
     new_size = render.getmaxyx()
     if sizes != new_size and scene.auto_resize:
-        scene.init(render)
+        # scene.init(render)
         sizes = new_size
         minsize = max(scene.minimal_size, minsize)
         if sizes[0] < minsize[0] or sizes[1] < minsize[1]:
