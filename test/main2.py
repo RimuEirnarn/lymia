@@ -61,7 +61,7 @@ class Root(Scene):
     """Root component"""
 
     render_fps = 120
-    minimal_size = (30, 120)
+    #minimal_size = (30, 120)
 
     def __init__(self) -> None:
         super().__init__()
@@ -114,14 +114,18 @@ class Root(Scene):
         }
         self._state = {"menu": self._menu}
         self._keytype = ""
+        self._t = 0
+        self._key = 0
         self.register_keymap(self._menu)
         self._animator: Animator = Animator(self.render_fps)
 
     def draw(self) -> None:
         size = f"{self.height}x{self.width}"
+        k = f"Key: {self._key}"
+        t = f"Target: {self._t}"
         self._animator.tick()
         self.update_panels()
-        status.set(f"FPS: {self.fps} | Screen: {size} | Action: {self._keytype}")
+        status.set(f"FPS: {self.fps} | Screen: {size} | {k} | {t} | Action: {self._keytype}")
         self.show_status()
 
     def init(self, stdscr: curses.window):
@@ -129,10 +133,18 @@ class Root(Scene):
         self._panels = (
             Panel(*(8, 30, self.height - 9, 0), draw_character, self._character),
             Panel(*(8, 30, self.height - 9, 30), draw_action, state=self._menu),
-            Panel(*(8, 30, self.height - 9, 30), draw_abaction),
+            Panel(*(8, 30, self.height - 9, 30), draw_abaction, state=self._menu),
         )
         self._panels[2].hide()
         stdscr.nodelay(True)
+
+    def handle_key(self, key: int):
+        if key == 410:
+            return ReturnType.CONTINUE
+        res = super().handle_key(key)
+        if key != -1:
+            self._key = key
+        return res
 
     @on_key("q")
     def quit(self):
@@ -144,7 +156,7 @@ class Root(Scene):
         """Select from skill menu"""
         _, ability = (
             self._menu.fetch()
-            if self._panels[2].panel.hidden()
+            if self._t == 0
             else self._panels[2].get_state().fetch() # type: ignore
         )
         if not isinstance(ability, Forms) and self._panels[2].panel.hidden():
@@ -160,6 +172,7 @@ class Root(Scene):
                 self._panels[1], 30, self.height - 9, 60, self.height - 9, 0.5
             )
             anim.on_complete(lambda _: self._panels[2].show())
+            self._t = 1
             self._animator.add(anim)
         if not isinstance(ability, Forms) and self._panels[2].panel.hidden() is False:
             keytype = ability()
@@ -168,12 +181,13 @@ class Root(Scene):
             self._keytype = keytype
             self.register_keymap(self._menu)
             self._panels[2].hide()
-            self._panels[2].set_state(None)
+            self._panels[2].set_state(self._menu)
             self._animator.add(
                 move_panel(
                     self._panels[1], 60, self.height - 9, 30, self.height - 9, 0.5
                 )
             )
+            self._t = 0
 
         return ReturnType.CONTINUE
 
@@ -183,12 +197,13 @@ class Root(Scene):
         if self._panels[2].panel.hidden() is False:
             self._panels[2].hide()
             self.register_keymap(self._menu)
-            self._panels[2].set_state(None)
+            self._panels[2].set_state(self._menu)
             self._animator.add(
                 move_panel(
                     self._panels[1], 60, self.height - 9, 30, self.height - 9, 0.5
                 )
             )
+            self._t = 0
         return ReturnType.CONTINUE
 
 
