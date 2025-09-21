@@ -39,15 +39,17 @@ class Menu(Generic[T]):
         fields: Fields | FieldsFn,
         prefix: str = "-> ",
         selected_style: int | ColorPair = 0,
-        margin: tuple[int, int] = (0, 0),
+        margin_height: tuple[int, int] = (0, 0),
+        margin_left: int = 0,
         max_height: int = -1,
         count: Callable[[], int] | None = None
     ) -> None:
         self._fields = fields
         self._cursor = 0
         self._selected_style = selected_style
-        self._margins = margin
+        self._margins = margin_height
         self._max_height = max_height
+        self._margin_left = margin_left
         self._prefix = prefix
 
         if isinstance(fields, Sequence):
@@ -81,7 +83,7 @@ class Menu(Generic[T]):
                 getattr(content, "display", None)
             ):
                 data: str = content.display()
-            stdscr.addstr(self._margins[0] + index, 0, data, style)
+            stdscr.addstr(self._margins[0] + index, self._margin_left, data, style)
 
     @property
     def max_height(self):

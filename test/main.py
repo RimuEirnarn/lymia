@@ -44,7 +44,7 @@ class MinuteClock(Scene):
         self._menu: Menu[int] = Menu(
             self.generate_time_minute,
             prefix="   ",
-            margin=(self.margin_top, 2),
+            margin_height=(self.margin_top, 2),
             selected_style=Basic.SELECTED,
         )
         self.register_keymap(self._menu)
@@ -62,9 +62,9 @@ class MinuteClock(Scene):
     @on_key(curses.KEY_RIGHT)
     def exec_menu(self):
         """Pops menu and returns component"""
-        comp: Callable[[], Scene] = self._menu.fetch()[1]  # type: ignore
+        comp: Callable[[], ReturnType] = self._menu.fetch()[1]  # type: ignore
         if not isinstance(comp, Forms):
-            return SceneResult(comp())
+            return comp()
         return ReturnType.CONTINUE
 
     @on_key("q")
@@ -90,7 +90,7 @@ class Clock(Scene):
         self._menu: Menu[MinuteClock] = Menu(
             self.generate_time_hour,
             prefix="   ",
-            margin=(self.margin_top, 4),
+            margin_height=(self.margin_top, 4),
             selected_style=Basic.SELECTED,
         )
         self.register_keymap(self._menu)
@@ -132,7 +132,7 @@ class Settings(MenuFormScene):
         menu: Menu = Menu(
             fields.to_menu_fields(),
             prefix="   ",
-            margin=(self.margin_top, 2),
+            margin_height=(self.margin_top, 2),
             selected_style=Basic.SELECTED,
         )
         super().__init__(menu)
@@ -163,7 +163,7 @@ class Root(Scene):
                 ("Settings", lambda: Settings()),  # pylint: disable=unnecessary-lambda
                 ("Clock", lambda: Clock()),  # pylint: disable=unnecessary-lambda
             ),
-            margin=(2, 2),
+            margin_height=(2, 2),
             selected_style=Basic.SELECTED,
         )
         self.register_keymap(self._menu)

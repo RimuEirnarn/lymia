@@ -78,8 +78,8 @@ def runner(stdscr: curses.window, root: Scene, env: Theme | None = None):
         if isinstance(result, SceneResult):
             scene = result.scene
             render = result.target or stdscr
+            scene.init(render)
             stack.append(scene)
-            comp.init(render)
 
 def bootstrap(fn: Callable[Ps, tuple[Scene, Theme | None]]):
     """Run the app, must be used as decorator like:

@@ -6,6 +6,8 @@ import curses
 from os import get_terminal_size, terminal_size
 from typing import Callable, Self, TypeAlias, TypeGuard, TypeVar
 
+from lymia.panel import Panel
+
 from .utils import clear_line
 from .data import ReturnType, status, SceneResult
 from .menu import Menu
@@ -77,6 +79,7 @@ class Scene(metaclass=SceneMeta):
         self._init = False
         self._override = False
         self._screen: curses.window = None # type: ignore
+        self._panels: tuple[Panel, ...] = ()
 
     def draw(self) -> None | ReturnType:
         """Draw this component"""
@@ -119,6 +122,11 @@ class Scene(metaclass=SceneMeta):
         except curses.error: # occurs during resize
             pass
 
+    def update_panels(self):
+        """Update all panels"""
+        for panel in self._panels:
+            panel.draw()
+
     def syscall(self) -> ReturnType:
         """Do whatever you want."""
         return ReturnType.OK
@@ -136,6 +144,8 @@ class Scene(metaclass=SceneMeta):
 
     def on_unmount(self):
         """On unmount"""
+        for panel in self._panels:
+            panel.hide()
         return None
 
     def register_keymap(self, menu: Menu):
