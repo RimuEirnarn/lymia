@@ -22,12 +22,18 @@ def runner(stdscr: curses.window, root: Scene, env: Theme | None = None):
     sizes = render.getmaxyx()
     delta: float = 0
     start = end = 0
+    frame_count = 0
+    window_start = perf_counter()
+    remaining = 0
+    wdt = 0
+    wend = 0
 
     if env:
         env.apply()
 
     while stack:
         start = perf_counter()
+
         comp = stack[-1]
 
         if comp.should_clear:
@@ -44,10 +50,13 @@ def runner(stdscr: curses.window, root: Scene, env: Theme | None = None):
         curses.panel.update_panels()
         curses.doupdate()
         if comp.render_fps > 1: # why do we add this anyway?
+            wend = perf_counter()
+            wdt = wend - start
             frametime = 1 / comp.render_fps
-            remaining = frametime - delta
+            remaining = frametime - wdt
             if remaining > 0:
                 sleep(remaining)
+            # comp.fps = 1 / delta
 
         # curses.panel.update_panels()
         if ret in (ReturnType.BACK, ReturnType.ERR_BACK):
@@ -74,6 +83,12 @@ def runner(stdscr: curses.window, root: Scene, env: Theme | None = None):
         # comp.handle_key() may mutate display
         end = perf_counter()
         delta = end - start
+        frame_count += 1
+        if end - window_start >= 1.0:
+            comp.fps = frame_count / (end - window_start)
+            frame_count = 0
+            window_start = end
+
         if result == ReturnType.EXIT:
             for scene in stack:
                 scene.on_unmount()

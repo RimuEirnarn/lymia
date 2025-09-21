@@ -81,6 +81,7 @@ class Scene(metaclass=SceneMeta):
         self._override = False
         self._screen: curses.window = None # type: ignore
         self._panels: tuple[Panel, ...] = ()
+        self._fps = 0
         self._animator: Animator
 
     def draw(self) -> None | ReturnType:
@@ -197,6 +198,16 @@ class Scene(metaclass=SceneMeta):
         if not hasattr(self, '_animator'):
             return None
         return self._animator
+
+    @property
+    def fps(self):
+        """this Scene's FPS (not constant)"""
+        return self._fps
+
+    @fps.setter
+    def fps(self, num: float):
+        """this Scene's FPS (not constant)"""
+        self._fps = num
 
     def __repr__(self) -> str:
         return f"<Component/{type(self).__name__}>"

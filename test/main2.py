@@ -6,13 +6,12 @@ from os.path import realpath
 from sys import path
 
 
-
 p = realpath("../")
 print(p)
 path.insert(0, p)
 
 from lymia import Scene, on_key
-from lymia.anim import  Animator, move_panel
+from lymia.anim import Animator, move_panel
 from lymia.panel import Panel
 from lymia.colors import Coloring
 from lymia.data import ReturnType, status
@@ -86,24 +85,24 @@ class Root(Scene):
         )
         self._ability_menu_skill = Menu(
             (
-                ("Paladin's Momentum", lambda: None),
-                ("Reformative Catalyst", lambda: None),
-                ("Lantern of Radiance", lambda: None),
+                ("Paladin's Momentum", lambda: "Skill: Paladin's Momentum"),
+                ("Reformative Catalyst", lambda: "SKill: Reformative Catalyst"),
+                ("Lantern of Radiance", lambda: "Skill: Lantern of Radiance"),
             ),
             **self._kwdargs,
         )
         self._ability_menu_ultimate = Menu(
             (
-                ("Vainglory's Revolution", lambda: None),
-                ("The Radiance", lambda: None),
+                ("Vainglory's Revolution", lambda: "Ultimate: Vainglory's Revolution"),
+                ("The Radiance", lambda: "Ultimate: The Radiance"),
             ),
             **self._kwdargs,
         )
         self._ability_menu_items = Menu(
             (
-                ("Small HP Potion", lambda: None),
-                ("Medium HP Potion", lambda: None),
-                ("Big HP Potion", lambda: None),
+                ("Small HP Potion", lambda: "Items: Small HP Potion"),
+                ("Medium HP Potion", lambda: "Items: Medium HP Potion"),
+                ("Big HP Potion", lambda: "Items: Big HP Potion"),
             ),
             **self._kwdargs,
         )
@@ -113,10 +112,12 @@ class Root(Scene):
             "Items": self._ability_menu_items,
         }
         self._state = {"menu": self._menu}
+        self._keytype = ""
         self.register_keymap(self._menu)
         self._animator: Animator = Animator(self.render_fps)
 
     def draw(self) -> None:
+        status.set(f"FPS: {self.fps} | Action: {self._keytype}")
         self._animator.tick()
         self.update_panels()
         self.show_status()
@@ -139,19 +140,38 @@ class Root(Scene):
     @on_key(curses.KEY_RIGHT)
     def select(self):
         """Select from skill menu"""
-        _, ability = self._menu.fetch()
+        _, ability = (
+            self._menu.fetch()
+            if self._panels[2].panel.hidden()
+            else self._panels[2].get_state().fetch() # type: ignore
+        )
         if not isinstance(ability, Forms) and self._panels[2].panel.hidden():
             keytype = ability()
             if keytype is None:
                 return ReturnType.CONTINUE
             if keytype in ("Flee", "Basic Attack"):
-                status.set(keytype)
+                self._keytype = keytype
                 return ReturnType.CONTINUE
             self.register_keymap(self._abmenu[keytype])
             self._panels[2].set_state(self._abmenu[keytype])
-            anim = move_panel(self._panels[1], 30, self.height - 9, 60, self.height - 9, 0.5)
+            anim = move_panel(
+                self._panels[1], 30, self.height - 9, 60, self.height - 9, 0.5
+            )
             anim.on_complete(lambda _: self._panels[2].show())
             self._animator.add(anim)
+        if not isinstance(ability, Forms) and self._panels[2].panel.hidden() is False:
+            keytype = ability()
+            if keytype is None:
+                return ReturnType.CONTINUE
+            self._keytype = keytype
+            self.register_keymap(self._menu)
+            self._panels[2].hide()
+            self._panels[2].set_state(None)
+            self._animator.add(
+                move_panel(
+                    self._panels[1], 60, self.height - 9, 30, self.height - 9, 0.5
+                )
+            )
 
         return ReturnType.CONTINUE
 
@@ -163,7 +183,9 @@ class Root(Scene):
             self.register_keymap(self._menu)
             self._panels[2].set_state(None)
             self._animator.add(
-                move_panel(self._panels[1], 60, self.height - 9, 30, self.height - 9, 0.5)
+                move_panel(
+                    self._panels[1], 60, self.height - 9, 30, self.height - 9, 0.5
+                )
             )
         return ReturnType.CONTINUE
 
