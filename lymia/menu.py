@@ -68,7 +68,7 @@ class Menu(Generic[T]):
     def draw(self, stdscr: curses.window):
         """Draw menu component"""
 
-        start, end = prepare_windowed(self._cursor, self.max_height)
+        start, end = prepare_windowed(self._cursor, self.max_height - self._margins[1])
 
         for index, relative_index in enumerate(range(start, end)):
             try:
