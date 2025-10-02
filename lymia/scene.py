@@ -75,6 +75,7 @@ class Scene(metaclass=SceneMeta):
 
     _keymap: dict[int, str] = {}
     _actions: "dict[str, DefaultCallback | WinCallback]" = {}
+    _last_menu_actions: list[str] = []
 
 
     def __init__(self) -> None:
@@ -154,19 +155,16 @@ class Scene(metaclass=SceneMeta):
 
     def register_keymap(self, menu: Menu):
         """Register a menu's keymap into this component"""
-        key_up = menu.KEYMAP_UP
-        key_down = menu.KEYMAP_DOWN
-        call_up = menu.move_up
-        call_down = menu.move_down
-        self._keymap[key_up] = "move_up"
-        self._keymap[key_down] = "move_down"
-        self._actions['move_up'] = call_up
-        self._actions['move_down'] = call_down
+        self.cleanup_menu_keymap()
+        for action, (key, callback) in menu.get_keymap().items():
+            self._keymap[key] = action
+            self._actions[action] = callback
 
     def cleanup_menu_keymap(self):
         """Cleanup menu's register keymap"""
-        self._actions['move_up'] = lambda: ReturnType.CONTINUE
-        self._actions['move_down'] = lambda: ReturnType.CONTINUE
+        for action in self._last_menu_actions:
+            self._actions[action] = no_op
+        self._last_menu_actions.clear()
 
     @property
     def term_size(self): # type: ignore

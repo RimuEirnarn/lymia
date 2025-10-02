@@ -87,6 +87,13 @@ class Menu(Generic[T]):
                 data: str = content.display()
             stdscr.addstr(self._margins[0] + index, self._margin_left, data, style)
 
+    def get_keymap(self) -> dict[str, tuple[int, Callable[[], ReturnType]]]:
+        """Get instance keymap"""
+        return {
+            "move_up": (self.KEYMAP_UP, self.move_up),
+            "move_down": (self.KEYMAP_DOWN, self.move_down)
+        }
+
     @property
     def max_height(self):
         """Menu max height"""
@@ -126,8 +133,8 @@ class Menu(Generic[T]):
 class HorizontalMenu(Menu):
     """Horizontal Menu"""
 
-    KEYMAP_UP = curses.KEY_LEFT
-    KEYMAP_DOWN = curses.KEY_RIGHT
+    KEYMAP_LEFT = curses.KEY_LEFT
+    KEYMAP_RIGHT = curses.KEY_RIGHT
 
     def __init__(
         self,
@@ -170,3 +177,9 @@ class HorizontalMenu(Menu):
                 data: str = content.display()
             stdscr.addstr(self._margins[0], self._margin_left + x, data, style)
             x += len(data) + 1
+
+    def get_keymap(self) -> dict[str, tuple[int, Callable[[], ReturnType]]]:
+        return {
+            "move_left": (self.KEYMAP_LEFT, self.move_up),
+            "move_right": (self.KEYMAP_RIGHT, self.move_down)
+        }
