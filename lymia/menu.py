@@ -139,7 +139,8 @@ class HorizontalMenu(Menu):
     def __init__(
         self,
         fields: Fields | FieldsFn,
-        prefix: str = "-> ",
+        prefix: str = "",
+        suffix: str = "",
         selected_style: int | ColorPair = 0,
         margin_height: tuple[int, int] = (0, 0),
         margin_left: int = 0,
@@ -155,6 +156,7 @@ class HorizontalMenu(Menu):
             max_height,
             count,
         )
+        self._suffix = suffix
 
     def draw(self, stdscr: curses.window):
         start, end = prepare_windowed(
@@ -167,7 +169,7 @@ class HorizontalMenu(Menu):
                 label, content = self._get_field(relative_index)
             except (IndexError, StopIteration):
                 break
-            data = f"[{self._prefix}{label}]"
+            data = f"{self._prefix}{label}{self._suffix}"
             style = 0
             if relative_index == self._cursor:
                 style = curses.color_pair(int(self._selected_style))
