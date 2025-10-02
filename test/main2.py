@@ -2,6 +2,7 @@
 
 # pylint: disable=no-member,no-name-in-module,wrong-import-position,missing-module-docstring
 import curses
+from dataclasses import dataclass
 from os.path import realpath
 from sys import path
 
@@ -10,6 +11,7 @@ p = realpath("../")
 path.insert(0, p)
 
 from lymia import Scene, on_key
+from lymia.progress import Progress
 from lymia.anim import Animator, move_panel
 from lymia.panel import Panel
 from lymia.colors import Coloring
@@ -27,17 +29,46 @@ class Basic(Coloring):
     SELECTED = ColorPair(color.BLACK, color.WHITE)
 
 
-def draw_character(screen: curses.window, character):
+@dataclass
+class Character:
+    """Character"""
+
+    name: str
+    level: int
+    current_hp: int
+    max_hp: int
+    current_mp: int
+    max_mp: int
+    current_energy: int
+    max_energy: int
+
+
+@dataclass
+class DState:
+    """DState"""
+
+    character: Character
+    hpbar: Progress
+    mpbar: Progress
+    energybar: Progress
+
+
+def draw_character(screen: curses.window, state: DState):
     """Draw character HUD"""
     screen.erase()
     screen.box()
-    screen.addstr(1, 2, character[0])
-    hp = character[1]
-    mp = character[2]
-    energy = character[3]
-    screen.addstr(3, 3, f"HP: {hp[0]}/{hp[1]}")
-    screen.addstr(4, 3, f"MP: {mp[0]}/{mp[1]}")
-    screen.addstr(5, 3, f"Energy: {energy[0]}/{energy[1]}")
+    character = state.character
+    hpbar = state.hpbar
+    mpbar = state.mpbar
+    ebar = state.energybar
+    screen.addstr(1, 2, f"{character.name} Lv. {character.level}")
+    hp = character.current_hp, character.max_hp
+    mp = character.current_mp, character.max_mp
+    energy = character.current_energy, character.max_energy
+    # screen.addstr(3, 3, f"HP: {hp[0]}/{hp[1]}")
+    hpbar.render(screen, 3, 3, 7, hp[0], hp[1], "HP:")
+    mpbar.render(screen, 4, 3, 7, mp[0], mp[1], "MP:")
+    ebar.render(screen, 5, 3, 7, energy[0], energy[1], "E :")
 
 
 def draw_action(screen: curses.window, menu: Menu):
@@ -65,7 +96,10 @@ class Root(Scene):
     def __init__(self) -> None:
         super().__init__()
         self._panels: tuple[Panel, ...]
-        self._character = ("Rimu Aerisya Lv. 100", (8300, 8300), (75, 100), (185, 200))
+        self._hpbar: Progress
+        self._mpbar: Progress
+        self._ebar: Progress
+        self._character = Character("Rimu Aerisya", 100, 1, 8300, 75, 100, 185, 200)
         self._kwdargs = {
             "prefix": " ",
             "selected_style": Basic.SELECTED,
@@ -144,11 +178,25 @@ class Root(Scene):
             f"FPS: {self.fps} | Screen: {size} | {k} | {t} | Action: {self._keytype}"
         )
         self.show_status()
+        # self._hpbar.render(
+        #     self._panels[0], 3, 8, 5, self._character.current_hp, self._character.max_hp
+        # )
+        if self._character.current_hp < self._character.max_hp:
+            self._character.current_hp += 100
+        elif self._character.current_hp >= self._character.max_hp:
+            self._character.current_hp = 0
 
     def init(self, stdscr: curses.window):
         super().init(stdscr)
+        self._hpbar = Progress()
+        self._mpbar = Progress()
+        self._ebar = Progress()
         self._panels = (
-            Panel(*(8, 30, self.height - 9, 0), draw_character, self._character),
+            Panel(
+                *(8, 30, self.height - 9, 0),
+                draw_character,
+                DState(self._character, self._hpbar, self._mpbar, self._ebar),
+            ),
             Panel(*(8, 30, self.height - 9, 30), draw_action, state=self._menu),
             Panel(*(8, 30, self.height - 9, 30), draw_abaction),
         )
@@ -216,7 +264,9 @@ class Root(Scene):
             keytype = ability()
             if keytype is None:
                 return ReturnType.CONTINUE
-            if keytype in ("Flee", "Basic Attack"):
+            if keytype == "Flee":
+                return ReturnType.EXIT
+            if keytype in ("Basic Attack",):
                 self._keytype = keytype
                 return ReturnType.CONTINUE
             self.use_panel2(keytype)

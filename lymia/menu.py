@@ -15,7 +15,9 @@ from .data import ReturnType
 from .utils import prepare_windowed
 
 T = TypeVar("T")
-Fields: TypeAlias = tuple[tuple[str, Callable[[], T]], ...] | tuple[tuple[str, Forms], ...]
+Fields: TypeAlias = (
+    tuple[tuple[str, Callable[[], T]], ...] | tuple[tuple[str, Forms], ...]
+)
 FieldsFn: TypeAlias = Callable[[int], tuple[str, Callable[[], T]]]
 
 
@@ -42,7 +44,7 @@ class Menu(Generic[T]):
         margin_height: tuple[int, int] = (0, 0),
         margin_left: int = 0,
         max_height: int = -1,
-        count: Callable[[], int] | None = None
+        count: Callable[[], int] | None = None,
     ) -> None:
         self._fields = fields
         self._cursor = 0
