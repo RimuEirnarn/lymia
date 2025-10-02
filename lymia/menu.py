@@ -91,7 +91,7 @@ class Menu(Generic[T]):
         """Get instance keymap"""
         return {
             "move_up": (self.KEYMAP_UP, self.move_up),
-            "move_down": (self.KEYMAP_DOWN, self.move_down)
+            "move_down": (self.KEYMAP_DOWN, self.move_down),
         }
 
     @property
@@ -159,9 +159,7 @@ class HorizontalMenu(Menu):
         self._suffix = suffix
 
     def draw(self, stdscr: curses.window):
-        start, end = prepare_windowed(
-            self._cursor, visible_rows=self.max_height - self._margins[1]
-        )
+        start, end = prepare_windowed(self._cursor, visible_rows=self.max_height)
         x = 0
 
         for _, relative_index in enumerate(range(start, end)):
@@ -183,5 +181,5 @@ class HorizontalMenu(Menu):
     def get_keymap(self) -> dict[str, tuple[int, Callable[[], ReturnType]]]:
         return {
             "move_left": (self.KEYMAP_LEFT, self.move_up),
-            "move_right": (self.KEYMAP_RIGHT, self.move_down)
+            "move_right": (self.KEYMAP_RIGHT, self.move_down),
         }
