@@ -1,7 +1,10 @@
 """Lymia"""
 
+from .progress import Progress
+from .panel import Panel
+from .anim import Animation, Animator, KeyframeAnimation
 from .runner import bootstrap, run
-from .menu import Menu
+from .menu import Menu, HorizontalMenu
 from .scene import Scene, MenuFormScene, on_key
 from .data import status, ReturnInfo, ReturnType
 from .utils import hide_system, clear_line, clear_line_yield
@@ -25,5 +28,11 @@ __all__ = [
     "Password",
     "Text",
     'FormFields',
-    "Forms"
+    "Forms",
+    "Animator",
+    "Animation",
+    'KeyframeAnimation',
+    'Panel',
+    'Progress',
+    'HorizontalMenu'
 ]

@@ -10,13 +10,13 @@ p = realpath("../")
 print(p)
 path.insert(0, p)
 
-from lymia import const, run, Scene, on_key, Menu, MenuFormScene, Forms
+from lymia import const, run, Scene, on_key, Menu, MenuFormScene, Forms, HorizontalMenu
 from lymia.data import SceneResult, ReturnType, status
 from lymia.colors import Coloring, ColorPair, color
 from lymia.environment import Theme
 from lymia.forms import FormFields, Text, Password
 from lymia.runner import debug
-
+from lymia import const
 
 class Basic(Coloring):
     """Basic color pair"""
@@ -153,6 +153,48 @@ class Settings(MenuFormScene):
         return self.select_menu_item()
 
 
+class Settings2(Scene):
+    """Settings 2"""
+
+    def __init__(self):
+        super().__init__()
+        self.margin_top = 2
+        fields = (
+            ("Button 1", lambda: status.set("Button 1 clicked")),
+            ("Button 2", lambda: status.set("Button 2 clicked")),
+        )
+        self._menu = HorizontalMenu(
+            fields,
+            prefix="",
+            selected_style=Basic.SELECTED,
+            margin_height=(self.margin_top, 0),
+            margin_left=0,
+        )
+        self.register_keymap(self._menu)
+
+    def draw(self):
+        self.screen.addstr(0, 0, "App settings")
+        self._menu.draw(self.screen)
+        self.show_status()
+
+    @on_key("q")
+    def back(self):
+        """Back"""
+        return ReturnType.BACK
+
+    @on_key(const.KEY_ESC)
+    def quit(self):
+        """Quit"""
+        return ReturnType.EXIT
+
+    @on_key(curses.KEY_ENTER, const.KEY_ENTER)
+    def enter_mode(self):
+        """Enter edit mode"""
+        _, callback = self._menu.fetch()
+        if not isinstance(callback, Forms):
+            callback()
+        return ReturnType.CONTINUE
+
 class Root(Scene):
     """Root component"""
 
@@ -161,6 +203,7 @@ class Root(Scene):
         self._menu: Menu[ReturnType | Scene] = Menu(
             (
                 ("Settings", lambda: Settings()),  # pylint: disable=unnecessary-lambda
+                ("Settings", lambda: Settings2()),  # pylint: disable=unnecessary-lambda
                 ("Clock", lambda: Clock()),  # pylint: disable=unnecessary-lambda
             ),
             margin_height=(2, 2),

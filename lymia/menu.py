@@ -121,3 +121,52 @@ class Menu(Generic[T]):
 
     def __repr__(self) -> str:
         return f"<{type(self).__name__} size={self.height!r}>"
+
+
+class HorizontalMenu(Menu):
+    """Horizontal Menu"""
+
+    KEYMAP_UP = curses.KEY_LEFT
+    KEYMAP_DOWN = curses.KEY_RIGHT
+
+    def __init__(
+        self,
+        fields: Fields | FieldsFn,
+        prefix: str = "-> ",
+        selected_style: int | ColorPair = 0,
+        margin_height: tuple[int, int] = (0, 0),
+        margin_left: int = 0,
+        max_height: int = -1,
+        count: Callable[[], int] | None = None,
+    ) -> None:
+        super().__init__(
+            fields,
+            prefix,
+            selected_style,
+            margin_height,
+            margin_left,
+            max_height,
+            count,
+        )
+
+    def draw(self, stdscr: curses.window):
+        start, end = prepare_windowed(
+            self._cursor, visible_rows=self.max_height - self._margins[1]
+        )
+        x = 0
+
+        for _, relative_index in enumerate(range(start, end)):
+            try:
+                label, content = self._get_field(relative_index)
+            except (IndexError, StopIteration):
+                break
+            data = f"[{self._prefix}{label}]"
+            style = 0
+            if relative_index == self._cursor:
+                style = curses.color_pair(int(self._selected_style))
+            if hasattr(content, "display") and callable(
+                getattr(content, "display", None)
+            ):
+                data: str = content.display()
+            stdscr.addstr(self._margins[0], self._margin_left + x, data, style)
+            x += len(data) + 1
