@@ -16,7 +16,6 @@ from lymia.colors import Coloring, ColorPair, color
 from lymia.environment import Theme
 from lymia.forms import FormFields, Text, Password
 from lymia.runner import debug
-from lymia import const
 
 class Basic(Coloring):
     """Basic color pair"""
