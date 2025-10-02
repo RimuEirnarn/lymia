@@ -155,7 +155,6 @@ class Scene(metaclass=SceneMeta):
 
     def register_keymap(self, menu: Menu):
         """Register a menu's keymap into this component"""
-        self.cleanup_menu_keymap()
         for action, (key, callback) in menu.get_keymap().items():
             self._keymap[key] = action
             self._actions[action] = callback
