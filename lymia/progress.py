@@ -9,16 +9,27 @@ from .panel import Panel
 
 PARTIAL_BLOCKS = ["", "▏", "▎", "▍", "▌", "▋", "▊", "▉", "█"]
 
+
 class Progress:
     """Progress"""
-    def __init__(self, smoothing: float=0.3, min_interval: float=0.1):
+
+    def __init__(self, smoothing: float = 0.3, min_interval: float = 0.1):
         self.smoothing = smoothing
         self.min_interval = min_interval
         self.avg_dt = None
         self.last_update = 0
         self.last_time = time.time()
 
-    def render(self, window: curses.window | Panel, y: int, x: int, width: int, current: int, total: int, prefix: str):
+    def render(
+        self,
+        window: curses.window | Panel,
+        y: int,
+        x: int,
+        width: int,
+        current: int,
+        total: int,
+        prefix: str,
+    ):
         """
         Draw the progress bar at (y, x) with given width.
         Progress values are provided by the Scene.
