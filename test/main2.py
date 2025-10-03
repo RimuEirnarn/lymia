@@ -255,13 +255,13 @@ class Root(Scene):
         """Select from skill menu"""
         if not self._animator.is_empty:
             return ReturnType.CONTINUE
-        _, ability = (
+        entry = (
             self._menu.fetch()
             if self._target_menu == 0
-            else self._panels[2].get_state().fetch()  # type: ignore
+            else self._panels[2].get_state().fetch() # type: ignore
         )
-        if not isinstance(ability, Forms) and self._panels[2].panel.hidden():
-            keytype = ability()
+        if not isinstance(entry.content, Forms) and self._panels[2].panel.hidden():
+            keytype = entry.content()
             if keytype is None:
                 return ReturnType.CONTINUE
             if keytype == "Flee":
@@ -270,8 +270,8 @@ class Root(Scene):
                 self._keytype = keytype
                 return ReturnType.CONTINUE
             self.use_panel2(keytype)
-        if not isinstance(ability, Forms) and self._panels[2].panel.hidden() is False:
-            keytype = ability()
+        if not isinstance(entry.content, Forms) and self._panels[2].panel.hidden() is False:
+            keytype = entry.content()
             if keytype is None:
                 return ReturnType.CONTINUE
             self._keytype = keytype

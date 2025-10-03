@@ -10,6 +10,7 @@ from .data import status, ReturnInfo, ReturnType
 from .utils import hide_system, clear_line, clear_line_yield
 from .forms import Password, Text, FormFields, Forms
 
+__lymia_debug__ = True
 __version__ = "0.0.4"
 __all__ = [
     'bootstrap',
@@ -36,3 +37,6 @@ __all__ = [
     'Progress',
     'HorizontalMenu'
 ]
+
+if __lymia_debug__:
+    print("Ehe~")

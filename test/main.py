@@ -61,9 +61,9 @@ class MinuteClock(Scene):
     @on_key(curses.KEY_RIGHT)
     def exec_menu(self):
         """Pops menu and returns component"""
-        comp: Callable[[], ReturnType] = self._menu.fetch()[1]  # type: ignore
-        if not isinstance(comp, Forms):
-            return comp()
+        comp = self._menu.fetch()
+        if not isinstance(comp.content, Forms):
+            return comp.content()
         return ReturnType.CONTINUE
 
     @on_key("q")
@@ -107,9 +107,9 @@ class Clock(Scene):
     @on_key(curses.KEY_RIGHT)
     def exec_menu(self):
         """Pops menu and returns component"""
-        comp: Callable[[], Scene] = self._menu.fetch()[1]  # type: ignore
-        if not isinstance(comp, Forms):
-            return SceneResult(comp())
+        comp = self._menu.fetch()
+        if not isinstance(comp.content, Forms):
+            return SceneResult(comp.content())
         return ReturnType.CONTINUE
 
     @on_key("q")
@@ -189,9 +189,9 @@ class Settings2(Scene):
     @on_key(curses.KEY_ENTER, const.KEY_ENTER)
     def enter_mode(self):
         """Enter edit mode"""
-        _, callback = self._menu.fetch()
-        if not isinstance(callback, Forms):
-            callback()
+        entry = self._menu.fetch()
+        if not isinstance(entry.content, Forms):
+            entry.content()
         return ReturnType.CONTINUE
 
 class Root(Scene):
@@ -218,9 +218,9 @@ class Root(Scene):
     @on_key(curses.KEY_RIGHT)
     def exec_menu(self):
         """Pops menu and returns component"""
-        comp: Callable[[], Scene] = self._menu.fetch()[1]  # type: ignore
-        if not isinstance(comp, Forms):
-            return SceneResult(comp())
+        comp = self._menu.fetch()
+        if not isinstance(comp.content, Forms):
+            return SceneResult(comp.content())
         return ReturnType.CONTINUE
 
     @on_key("q")

@@ -155,7 +155,7 @@ class Scene(metaclass=SceneMeta):
 
     def register_keymap(self, menu: Menu):
         """Register a menu's keymap into this component"""
-        for action, (key, callback) in menu.get_keymap().items():
+        for action, (key, callback) in menu.get_keymap().items(): # type: ignore
             self._keymap[key] = action
             self._actions[action] = callback
 
@@ -239,10 +239,10 @@ class MenuFormScene(Scene):
 
     def select_menu_item(self):
         """Select menu item"""
-        _, item = self._menu.fetch()
-        if isinstance(item, Forms):
-            item()
-            self._active_form = item
+        entry = self._menu.fetch()
+        if isinstance(entry.content, Forms):
+            entry.content()
+            self._active_form = entry.content
             self._override = True
             return ReturnType.OVERRIDE
         return ReturnType.CONTINUE
