@@ -4,7 +4,6 @@
 
 from collections.abc import Sequence
 from math import inf
-from os import get_terminal_size
 import curses
 from typing import Callable, Generic, TypeAlias, TypeVar
 
@@ -51,6 +50,7 @@ class Menu(Generic[T]):
         self._selected_style = selected_style
         self._margins = margin_height
         self._max_height = max_height
+        self._last_maxheight = max_height
         self._margin_left = margin_left
         self._prefix = prefix
 
@@ -70,7 +70,10 @@ class Menu(Generic[T]):
     def draw(self, stdscr: curses.window):
         """Draw menu component"""
 
-        start, end = prepare_windowed(self._cursor, stdscr.getmaxyx()[0] - self._margins[1])
+        maxh, _ = stdscr.getmaxyx()
+        self._last_maxheight = maxh
+
+        start, end = prepare_windowed(self._cursor, maxh - self._margins[1])
 
         for index, relative_index in enumerate(range(start, end)):
             try:
@@ -98,8 +101,8 @@ class Menu(Generic[T]):
     def max_height(self):
         """Menu max height"""
         if self._max_height == -1:
-            max_height = get_terminal_size().lines
-            return max_height - sum(self._margins)
+            max_height = self._last_maxheight
+            return max(max_height - sum(self._margins), -1)
         return self._max_height
 
     @property
