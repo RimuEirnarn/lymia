@@ -43,7 +43,7 @@ class MinuteClock(Scene):
         self._menu: Menu[int] = Menu(
             self.generate_time_minute,
             prefix="   ",
-            margin_height=(self.margin_top, 2),
+            margin_height=(self.margin_top, 4),
             selected_style=Basic.SELECTED,
         )
         self.register_keymap(self._menu)

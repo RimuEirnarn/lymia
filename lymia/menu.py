@@ -70,7 +70,7 @@ class Menu(Generic[T]):
     def draw(self, stdscr: curses.window):
         """Draw menu component"""
 
-        start, end = prepare_windowed(self._cursor, self.max_height - self._margins[1])
+        start, end = prepare_windowed(self._cursor, stdscr.getmaxyx()[0] - self._margins[1])
 
         for index, relative_index in enumerate(range(start, end)):
             try:
@@ -159,6 +159,9 @@ class HorizontalMenu(Menu):
         self._suffix = suffix
 
     def draw(self, stdscr: curses.window):
+
+        # This would definitely screw things over, we don't need "visible rows"
+        # as it's vertical and we don't know the labels.
         start, end = prepare_windowed(self._cursor, visible_rows=self.max_height)
         x = 0
 
@@ -177,6 +180,9 @@ class HorizontalMenu(Menu):
                 data: str = content.display()
             stdscr.addstr(self._margins[0], self._margin_left + x, data, style)
             x += len(data) + 1
+            # Possible fix, idk yet
+            if x >= stdscr.getmaxyx()[1]:
+                break
 
     def get_keymap(self) -> dict[str, tuple[int, Callable[[], ReturnType]]]:
         return {
