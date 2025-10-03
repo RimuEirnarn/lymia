@@ -29,6 +29,7 @@ class Progress:
         current: int,
         total: int,
         prefix: str,
+        only_bar: bool = False
     ):
         """
         Draw the progress bar at (y, x) with given width.
@@ -66,7 +67,10 @@ class Progress:
         # else:
         #     eta_str = " " * 10
 
-        line = f"{prefix} [{bar_str}] {current}/{total}"
+        if only_bar:
+            line = f"[{bar_str}]"
+        else:
+            line = f"{prefix} [{bar_str}] {current}/{total}"
 
         # Draw in curses window
         render.addnstr(y, x, line, width + 20)  # +20 for metadata
