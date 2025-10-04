@@ -160,6 +160,15 @@ class Menu(Generic[T]):
             return inf
         return count
 
+    @property
+    def cursor(self):
+        """Return this menu's cursor"""
+        return self._cursor
+
+    def reset_cursor(self):
+        """Reset cursor"""
+        self._cursor = 0
+
     def move_down(self):
         """Move cursor down"""
         if self._cursor < self.height - 1:
@@ -210,6 +219,14 @@ class HorizontalMenu(Menu):
         self._scroll_x = 0
         self._max_width = max_width
 
+        # lazy field fetcher
+    def _make_str(self, idx: int):
+        entry  = self._get_field(idx)
+        return entry.display()
+
+    def _tell_style(self, idx: int):
+        return self._get_field(idx).get_style
+
     def draw(self, stdscr: curses.window) -> None:
         _, max_x = stdscr.getmaxyx()
         y = self._margins[0]
@@ -221,20 +238,14 @@ class HorizontalMenu(Menu):
         if not hasattr(self, "_scroll_x"):
             self._scroll_x = 0
 
-        # lazy field fetcher
-        def make_str(idx):
-            entry  = self._get_field(idx)
-            return entry.display()
 
-        def tell_style(idx):
-            return self._get_field(idx).get_style
 
         # --- compute cursor string width ---
         try:
-            cursor_str = make_str(self._cursor)
+            cursor_str = self._make_str(self._cursor)
         except (IndexError, StopIteration):
             return
-        cursor_start = sum(len(make_str(i)) + 1 for i in range(self._cursor))
+        cursor_start = sum(len(self._make_str(i)) + 1 for i in range(self._cursor))
         cursor_end = cursor_start + len(cursor_str)
 
         # --- adjust _scroll_x to keep cursor visible ---
@@ -249,7 +260,7 @@ class HorizontalMenu(Menu):
         gap = 1
         while True:
             try:
-                s = make_str(i)
+                s = self._make_str(i)
             except (IndexError, StopIteration):
                 break
             item_start = menu_x
@@ -270,8 +281,9 @@ class HorizontalMenu(Menu):
             length = visible_end - visible_start
             screen_x = visible_start - self._scroll_x + viewport_left
 
-            # preselect =
-            style = curses.color_pair(int(self._selected_style) if i == self._cursor else tell_style(i)(False))
+            default = self._tell_style(i)(False)
+            style = curses.color_pair(int(self._selected_style) \
+                                      if i == self._cursor else default)
             substr = s[start_in_s : start_in_s + length]
             stdscr.addnstr(y, screen_x, substr, length, style)
 
