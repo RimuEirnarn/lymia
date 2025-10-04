@@ -94,6 +94,7 @@ def draw(scene: Scene, delta: float, start: float):
         scene.animator.deltatime = delta
     ret = scene.draw()
     screen_update()
+    scene.deferred_op()
     wait(scene.render_fps, start)
     return ret
 

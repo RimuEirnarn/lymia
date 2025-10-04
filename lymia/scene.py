@@ -90,6 +90,10 @@ class Scene(metaclass=SceneMeta):
         """Draw this component"""
         raise NotImplementedError
 
+    def deferred_op(self):
+        """Deferred operation, called after draw is invoked"""
+        return None
+
     def keymap_override(self, key: int) -> ReturnType:
         """Override key component"""
         return ReturnType.REVERT_OVERRIDE
@@ -247,7 +251,7 @@ class MenuFormScene(Scene):
             return ReturnType.OVERRIDE
         return ReturnType.CONTINUE
 
-def on_key(*keys: str | int):
+def on_key(*keys: str | int):# -> Callable[..., Function]:
     """On key event binding"""
 
     def inner(fn: "Function"):
