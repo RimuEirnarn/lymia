@@ -37,6 +37,3 @@ __all__ = [
     'Progress',
     'HorizontalMenu'
 ]
-
-if __lymia_debug__:
-    print("Ehe~")
