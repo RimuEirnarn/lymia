@@ -50,6 +50,11 @@ class Forms:
         """Value of current field"""
         return self._buffer
 
+    @value.setter
+    def value(self, v: str):
+        """Value of current field"""
+        self._buffer = v
+
     @property
     def displayed_value(self):
         """Displayed value of current field"""

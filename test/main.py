@@ -3,9 +3,6 @@ import curses
 from os.path import realpath
 from sys import path
 
-from typing import Callable
-
-
 p = realpath("../")
 print(p)
 path.insert(0, p)

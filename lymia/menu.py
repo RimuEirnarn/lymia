@@ -169,6 +169,13 @@ class Menu(Generic[T]):
         """Reset cursor"""
         self._cursor = 0
 
+    def seek(self, cursor: int):
+        """Seek to cursor"""
+        if cursor < 0:
+            return
+        if cursor <= self.height - 1:
+            self._cursor = cursor
+
     def move_down(self):
         """Move cursor down"""
         if self._cursor < self.height - 1:
