@@ -11,7 +11,7 @@ from lymia.colors import ColorPair
 from lymia.forms import Forms
 
 from .data import ReturnType
-from .utils import prepare_windowed, hide_system
+from .utils import prepare_windowed
 
 T = TypeVar("T")
 Fields: TypeAlias = (
