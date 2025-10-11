@@ -154,6 +154,9 @@ def runner(stdscr: curses.window, root: Scene, env: Theme | None = None):
     frame_count = 0
     window_start = perf_counter()
 
+    if root.use_default_color:
+        curses.use_default_colors()
+
     if env:
         env.apply()
 

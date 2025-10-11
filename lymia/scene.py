@@ -70,6 +70,7 @@ class Scene(metaclass=SceneMeta):
     reserved_lines: int = 5
     should_clear: bool = True
     auto_resize: bool = True
+    use_default_color: bool = False
     render_fps = -1
     minimal_size: tuple[int, int] = (-1, -1)
 

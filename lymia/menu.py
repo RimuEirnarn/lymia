@@ -245,8 +245,6 @@ class HorizontalMenu(Menu):
         if not hasattr(self, "_scroll_x"):
             self._scroll_x = 0
 
-
-
         # --- compute cursor string width ---
         try:
             cursor_str = self._make_str(self._cursor)
