@@ -191,6 +191,7 @@ def runner(stdscr: curses.window, root: Scene, env: Theme | None = None):
             continue
         render = new_render
 
+    root.on_unmount()
 
 def bootstrap(fn: Callable[Ps, tuple[Scene, Theme | None]]):
     """Run the app, must be used as decorator like:
