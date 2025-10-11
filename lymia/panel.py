@@ -63,6 +63,11 @@ class Panel:
         """Return the panel this class references to"""
         return self._panel
 
+    @property
+    def visible(self):
+        """Return whether or not this panel is visible"""
+        return not self.panel.hidden()
+
     def draw(self):
         """Draw this panel"""
         if callable(self._draw):
