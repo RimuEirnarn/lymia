@@ -1,5 +1,7 @@
 """Colors"""
+# pylint: disable=no-member
 
+import curses
 from . import _color_const as color
 
 class ColorPair:
@@ -28,6 +30,10 @@ class ColorPair:
         if self._id == -1:
             raise ValueError("This color must be initialized")
         return self._id
+
+    def pair(self):
+        """Return style pairing"""
+        return curses.color_pair(int(self))
 
     def set_id(self, cid: int):
         """Set this color id"""
