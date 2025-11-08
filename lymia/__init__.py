@@ -3,7 +3,7 @@
 from .progress import Progress
 from .panel import Panel
 from .anim import Animation, Animator, KeyframeAnimation
-from .runner import bootstrap, run
+from .runner import bootstrap, run, erun
 from .menu import Menu, HorizontalMenu
 from .scene import Scene, MenuFormScene, on_key
 from .data import status, ReturnInfo, ReturnType
@@ -15,6 +15,7 @@ __version__ = "0.0.4"
 __all__ = [
     'bootstrap',
     'run',
+    'erun',
     'Scene',
     'on_key',
     'status',
