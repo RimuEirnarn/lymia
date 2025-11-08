@@ -202,6 +202,7 @@ class Root(Scene):
         )
         self._panels[2].hide()
         stdscr.nodelay(True)
+        curses.use_default_colors()
 
     def handle_key(self, key: int):
         # if key == 410:
