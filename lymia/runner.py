@@ -6,6 +6,9 @@ import curses
 import curses.panel
 from functools import wraps
 from os import get_terminal_size
+from selectors import DefaultSelector
+import selectors
+import sys
 from time import sleep, perf_counter
 from typing import Callable, ParamSpec
 
@@ -193,6 +196,58 @@ def runner(stdscr: curses.window, root: Scene, env: Theme | None = None):
 
     root.on_unmount()
 
+
+def event_runner(
+    stdscr: curses.window, root: Scene, sel: DefaultSelector, event_callback: Callable[[str, int], ReturnType], env: Theme | None = None
+):
+    """Run the whole stack, but with events!"""
+    stdscr.nodelay(True)
+    sel.register(sys.stdin, selectors.EVENT_READ, "curses")
+
+    stack: list[Scene] = [root]
+    render = stdscr
+    root.init(render)
+    sizes = render.getmaxyx()
+    root_minsize = root.minimal_size
+
+    if root.use_default_color:
+        curses.use_default_colors()
+
+    if env:
+        env.apply()
+
+    while stack:
+        current = stack[-1]
+
+        if current.should_clear:
+            render.erase()
+
+        sizes = check_resize(render, current, sizes, root_minsize)
+        result = draw(current, 0, 0)
+
+        if on_back(result, stack, current):
+            render = stdscr
+            continue
+
+        events = sel.select()
+        for key, mask in events:
+            if key.data == "curses":
+                ckey = render.getch()
+                result = current.handle_key(ckey)
+                screen_update()
+            else:
+                event_callback(key, mask) # type: ignore
+                result = ReturnType.CONTINUE
+
+        new_render = process_scene_result(result, stack, current, render, stdscr)  # type: ignore
+        if new_render is False:
+            break
+        if new_render is None:
+            continue
+        render = new_render
+    root.on_unmount()
+
+
 def bootstrap(fn: Callable[Ps, tuple[Scene, Theme | None]]):
     """Run the app, must be used as decorator like:
 
@@ -218,3 +273,7 @@ def debug(fn: Callable[Ps, tuple[Scene, Theme | None]]):
 def run(_fn: Callable[Ps, tuple[Scene, Theme | None]], *args, **kwargs):
     """Run main function, the structure must be similiar of `@bootstrap` target function."""
     return curses.wrapper(runner, *_fn(*args, **kwargs))
+
+def erun(_fn: Callable[Ps, tuple[Scene, DefaultSelector, Callable[[str, int], ReturnType], Theme | None]], *args, **kwargs):
+    """Run the main function (event!)"""
+    return curses.wrapper(event_runner, *_fn(*args, **kwargs))
