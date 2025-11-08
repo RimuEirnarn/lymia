@@ -11,7 +11,7 @@ from .utils import hide_system, clear_line, clear_line_yield
 from .forms import Password, Text, FormFields, Forms
 
 __lymia_debug__ = True
-__version__ = "0.0.4"
+__version__ = "0.0.5"
 __all__ = [
     'bootstrap',
     'run',
